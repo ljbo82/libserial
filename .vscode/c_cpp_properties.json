@@ -1,0 +1,96 @@
+/*
+Copyright (c) 2022 Leandro José Britto de Oliveira
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+{
+    "env": {
+        "includePath": [
+            "${workspaceFolder}/src",
+            "${workspaceFolder}/include"
+        ],
+        "defines": []
+    },
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${includePath}"
+            ],
+            "defines": [
+                "${defines}"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu99",
+            "cppStandard": "gnu++11",
+            "intelliSenseMode": "linux-gcc-x64",
+            "configurationProvider": "ms-vscode.makefile-tools"
+        },
+        {
+            "name": "Windows",
+            "includePath": [
+                "${includePath}"
+            ],
+            "defines": [
+                "${defines}"
+            ],
+            "compilerPath": "${env:CYGWIN_DIR}\\bin\\x86_64-w64-mingw32-gcc.exe",
+            "cStandard": "gnu99",
+            "cppStandard": "gnu++11",
+            "intelliSenseMode": "windows-gcc-x64",
+            "configurationProvider": "ms-vscode.makefile-tools"
+        },
+		{
+            "name": "Windows (linux cross)",
+            "includePath": [
+                "${includePath}"
+            ],
+            "defines": [
+                "${defines}"
+            ],
+            "compilerPath": "/usr/bin/x86_64-w64-mingw32-gcc",
+            "cStandard": "gnu99",
+            "cppStandard": "gnu++11",
+            "intelliSenseMode": "linux-gcc-x64",
+            "configurationProvider": "ms-vscode.makefile-tools"
+        },
+        {
+            "name": "Arduino UNO",
+            "includePath": [
+                "${includePath}",
+                "${workspaceFolder}/test/arduino/arduino-core-avr/variants/standard",
+                "${workspaceFolder}/test/arduino/arduino-core-avr/cores/arduino"
+            ],
+            "defines": [
+                "${defines}",
+                "F_CPU=16000000L",
+                "ARDUINO_UNO",
+                "ARDUINO_ARCH_AVR"
+            ],
+            "compilerPath": "/usr/bin/avr-gcc",
+			"compilerArgs": ["-mmcu=atmega328p"],
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++11",
+            "intelliSenseMode": "${default}",
+            "configurationProvider": "ms-vscode.makefile-tools"
+        }
+    ],
+    "version": 4
+}

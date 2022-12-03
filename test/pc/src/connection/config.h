@@ -1,0 +1,65 @@
+/*
+Copyright (c) 2022 Leandro José Britto de Oliveira
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+#pragma once
+
+#define CONNECTION_CONFIG(dataBits,parity,stopBits) (dataBits << 24) | (parity << 16) | (stopBits << 8)
+
+#define CONNECTION_CONFIG_DATA_BITS(conCfg) (((conCfg) & 0xff000000) >> 24)
+#define CONNECTION_CONFIG_PARITY(conCfg)    (((conCfg) & 0x00ff0000) >> 16)
+#define CONNECTION_CONFIG_STOP_BITS(conCfg) (((conCfg) & 0x0000ff00) >> 8)
+
+typedef enum connection_config connection_config_e;
+
+enum connection_config {
+	CONNECTION_CONFIG_5N1 = CONNECTION_CONFIG(5,0,1),
+	CONNECTION_CONFIG_6N1 = CONNECTION_CONFIG(6,0,1),
+	CONNECTION_CONFIG_7N1 = CONNECTION_CONFIG(7,0,1),
+	CONNECTION_CONFIG_8N1 = CONNECTION_CONFIG(8,0,1),
+
+	CONNECTION_CONFIG_5N2 = CONNECTION_CONFIG(5,0,2),
+	CONNECTION_CONFIG_6N2 = CONNECTION_CONFIG(6,0,2),
+	CONNECTION_CONFIG_7N2 = CONNECTION_CONFIG(7,0,2),
+	CONNECTION_CONFIG_8N2 = CONNECTION_CONFIG(8,0,2),
+
+	CONNECTION_CONFIG_5E1 = CONNECTION_CONFIG(5,1,1),
+	CONNECTION_CONFIG_6E1 = CONNECTION_CONFIG(6,1,1),
+	CONNECTION_CONFIG_7E1 = CONNECTION_CONFIG(7,1,1),
+	CONNECTION_CONFIG_8E1 = CONNECTION_CONFIG(8,1,1),
+
+	CONNECTION_CONFIG_5E2 = CONNECTION_CONFIG(5,1,2),
+	CONNECTION_CONFIG_6E2 = CONNECTION_CONFIG(6,1,2),
+	CONNECTION_CONFIG_7E2 = CONNECTION_CONFIG(7,1,2),
+	CONNECTION_CONFIG_8E2 = CONNECTION_CONFIG(8,1,2),
+
+	CONNECTION_CONFIG_5O1 = CONNECTION_CONFIG(5,2,1),
+	CONNECTION_CONFIG_6O1 = CONNECTION_CONFIG(6,2,1),
+	CONNECTION_CONFIG_7O1 = CONNECTION_CONFIG(7,2,1),
+	CONNECTION_CONFIG_8O1 = CONNECTION_CONFIG(8,2,1),
+
+	CONNECTION_CONFIG_5O2 = CONNECTION_CONFIG(5,2,2),
+	CONNECTION_CONFIG_6O2 = CONNECTION_CONFIG(6,2,2),
+	CONNECTION_CONFIG_7O2 = CONNECTION_CONFIG(7,2,2),
+	CONNECTION_CONFIG_8O2 = CONNECTION_CONFIG(8,2,2)
+};
+
+const char* connection_config_to_str(connection_config_e config);
