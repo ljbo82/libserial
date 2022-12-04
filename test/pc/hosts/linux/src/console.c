@@ -20,39 +20,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#pragma once
+#include <console.h>
+#include <stdio.h>
+#include <stdarg.h>
 
-#include <stddef.h>
-#include <stdint.h>
-#include <stdbool.h>
-
-#if defined _WIN32 || defined __CYGWIN__
-	#if defined(BUILD_DLL) && defined(STATIC_LIB)
-		#error BUILD_DLL and STATIC_LIB are both defined
-	#endif
-
-	#ifdef BUILD_DLL
-		/** @internal */
-		#define PUBLIC __declspec(dllexport)
-	#else
-		#ifndef STATIC_LIB
-			#define PUBLIC __declspec(dllimport)
-		#else
-			#define PUBLIC
-		#endif
-	#endif
-
-	/** @internal */
-	#define CALL __cdecl
-#else
-	#if __GNUC__ >= 4
-		/** @internal */
-		#define PUBLIC __attribute__ ((visibility ("default")))
-	#else
-		/** @internal */
-		#define PUBLIC
-	#endif
-
-	/** @internal */
-	#define CALL
-#endif
+void console_printf(const char* fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+	vprintf(fmt, args);
+	va_end(args);
+}

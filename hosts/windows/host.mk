@@ -23,5 +23,5 @@ LIB_TYPE ?= shared
 ifeq ($(LIB_TYPE),shared)
     CFLAGS += -DBUILD_DLL
 else
-    CFLAGS += -DUSE_STATIC
+    CFLAGS += -DSTATIC_LIB
 endif

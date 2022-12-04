@@ -21,11 +21,11 @@ SOFTWARE.
 */
 
 #include "console.h"
+#include "stack.h"
 
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include <alloca.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -79,7 +79,7 @@ const char* console_read(const char* prompt, char* buf, size_t szBuf) {
 }
 
 const char* console_get_option(const char* prompt, char* buf, size_t szBuf, size_t numOptions, ...) {
-	const char** options = alloca(sizeof(char*) * numOptions);
+	const char** options = stack_malloc(sizeof(char*) * numOptions);
 	va_list args;
 	va_start(args, numOptions);
 	for (size_t i = 0; i < numOptions; i++) {

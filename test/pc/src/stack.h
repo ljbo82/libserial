@@ -23,36 +23,5 @@ SOFTWARE.
 #pragma once
 
 #include <stddef.h>
-#include <stdint.h>
-#include <stdbool.h>
 
-#if defined _WIN32 || defined __CYGWIN__
-	#if defined(BUILD_DLL) && defined(STATIC_LIB)
-		#error BUILD_DLL and STATIC_LIB are both defined
-	#endif
-
-	#ifdef BUILD_DLL
-		/** @internal */
-		#define PUBLIC __declspec(dllexport)
-	#else
-		#ifndef STATIC_LIB
-			#define PUBLIC __declspec(dllimport)
-		#else
-			#define PUBLIC
-		#endif
-	#endif
-
-	/** @internal */
-	#define CALL __cdecl
-#else
-	#if __GNUC__ >= 4
-		/** @internal */
-		#define PUBLIC __attribute__ ((visibility ("default")))
-	#else
-		/** @internal */
-		#define PUBLIC
-	#endif
-
-	/** @internal */
-	#define CALL
-#endif
+void* stack_malloc(size_t size);

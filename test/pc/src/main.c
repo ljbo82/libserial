@@ -27,7 +27,6 @@ SOFTWARE.
 
 #include <string.h>
 #include <errno.h>
-#include <stdio.h>
 
 #define __ASSERT(cond) if (!(cond)) { console_color_printf(CONSOLE_ANSI_COLOR_BRIGHT_RED, "[ASSERTION ERROR][%s:%d] errno: %d (%s)\n", __FILE__, __LINE__, errno, serial_error_to_str(errno)); return 1; }
 
@@ -35,12 +34,12 @@ int main(int argc, char** argv) {
 	serial_list_t* list = serial_list_new();
 
 	if (!serial_list_ports(list)) {
-		printf("[ERROR] Error listing serial ports\n");
+		console_printf("[ERROR] Error listing serial ports\n");
 		return 1;
 	}
 
 	if (serial_list_size(list) == 0) {
-		printf("[ERROR] There is no serial ports\n");
+		console_printf("[ERROR] There is no serial ports\n");
 		return 1;
 	}
 
@@ -48,19 +47,19 @@ int main(int argc, char** argv) {
 	if (serial_list_size(list) == 1) {
 		portName = serial_list_item(list, 0);
 	} else {
-		printf("Available serial ports\n\n");
+		console_printf("Available serial ports\n\n");
 		for (size_t i = 0; i < serial_list_size(list); i++) {
-			printf("%zu) %s\n", i, serial_list_item(list, i));
+			console_printf("%zu) %s\n", i, serial_list_item(list, i));
 		}
 
-		printf("\n");
+		console_printf("\n");
 		int option = console_get_num_option("Choose a port: ", serial_list_size(list));
 		portName = serial_list_item(list, option);
 	}
 
 	connection_t* connection = connection_open(portName);
 	if (!connection) {
-		printf("[ERROR] Error opening serial port %s: %s\n", portName, serial_error_to_str(errno));
+		console_printf("[ERROR] Error opening serial port %s: %s\n", portName, serial_error_to_str(errno));
 		return 1;
 	}
 

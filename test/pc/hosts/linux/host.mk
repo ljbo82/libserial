@@ -18,14 +18,4 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-PROJ_NAME := serial-demo
-PROJ_TYPE := app
-
-export LIB_TYPE ?= static
-
-LIB_PROJECTS += ../..
-LIBS += serial0
-
-export CPP_PROJECT_BUILDER ?= $(abspath ../../cpp-project-builder)
-
-include $(CPP_PROJECT_BUILDER)/builder.mk
+include ../../hosts/linux/host.mk
