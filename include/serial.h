@@ -37,8 +37,10 @@ SOFTWARE.
 		#define PUBLIC __declspec(dllexport)
 	#else
 		#ifndef STATIC_LIB
+			/** @internal */
 			#define PUBLIC __declspec(dllimport)
 		#else
+			/** @internal */
 			#define PUBLIC
 		#endif
 	#endif
@@ -46,12 +48,17 @@ SOFTWARE.
 	/** @internal */
 	#define CALL __cdecl
 #else
-	#if __GNUC__ >= 4
-		/** @internal */
-		#define PUBLIC __attribute__ ((visibility ("default")))
-	#else
+	#ifdef STATIC_LIB
 		/** @internal */
 		#define PUBLIC
+	#else
+		#if __GNUC__ >= 4
+			/** @internal */
+			#define PUBLIC __attribute__ ((visibility ("default")))
+		#else
+			/** @internal */
+			#define PUBLIC
+		#endif
 	#endif
 
 	/** @internal */

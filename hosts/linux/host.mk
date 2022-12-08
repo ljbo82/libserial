@@ -24,6 +24,10 @@ ifneq ($(HOST),linux-x64)
     endif
 endif
 
+ifeq ($(LIB_TYPE),static)
+    CFLAGS += -DSTATIC_LIB
+endif
+
 ifeq ($(NATIVE_HOST),windows-x64)
     ifeq ($(HOST),linux-x64)
         CROSS_COMPILE := cygwin-linux-x64-
