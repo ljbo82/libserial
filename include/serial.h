@@ -22,7 +22,41 @@ SOFTWARE.
 
 #pragma once
 
-#include "defs.h"
+#include <stddef.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <errno.h>
+
+#if defined _WIN32 || defined __CYGWIN__
+	#if defined(BUILD_DLL) && defined(STATIC_LIB)
+		#error BUILD_DLL and STATIC_LIB are both defined
+	#endif
+
+	#ifdef BUILD_DLL
+		/** @internal */
+		#define PUBLIC __declspec(dllexport)
+	#else
+		#ifndef STATIC_LIB
+			#define PUBLIC __declspec(dllimport)
+		#else
+			#define PUBLIC
+		#endif
+	#endif
+
+	/** @internal */
+	#define CALL __cdecl
+#else
+	#if __GNUC__ >= 4
+		/** @internal */
+		#define PUBLIC __attribute__ ((visibility ("default")))
+	#else
+		/** @internal */
+		#define PUBLIC
+	#endif
+
+	/** @internal */
+	#define CALL
+#endif
 
 typedef struct __serial_list serial_list_t;
 
@@ -122,6 +156,8 @@ PUBLIC int32_t CALL serial_read(serial_t* port, void* out, uint32_t len);
 PUBLIC bool CALL serial_write(serial_t* port, const void* in, uint32_t len);
 
 PUBLIC bool CALL serial_flush(serial_t* port);
+
+PUBLIC const char* CALL serial_version();
 
 #ifdef __cplusplus
 } // extern "C"

@@ -21,15 +21,16 @@
 PROJ_NAME := serial-test-firmware
 PROJ_TYPE := app
 
+HOST         ?= arduino-avr-uno
 LIB_PROJECTS += arduino-core-avr
-LIBS += arduino-core1
+LIBS         += arduino-core1
 
 ifeq ($(DEBUG),1)
     CXXFLAGS += -DDEBUG_ENABLED=1
 endif
 
-export ARDUINO_BUILDER     ?= $(abspath arduino-builder)
-export CPP_PROJECT_BUILDER ?= $(abspath ../../cpp-project-builder)
+export ARDUINO_BUILDER     ?= $(abspath arduino-core-avr/builder/arduino-builder)
+export CPP_PROJECT_BUILDER ?= $(abspath arduino-core-avr/builder/cpp-project-builder)
 
 include $(ARDUINO_BUILDER)/layers.mk
 include $(CPP_PROJECT_BUILDER)/builder.mk

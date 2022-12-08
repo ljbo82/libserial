@@ -1,9 +1,3 @@
-[submodule "cpp-project-builder"]
-	path = cpp-project-builder
-	url = https://github.com/ljbo82/cpp-project-builder.git
-[submodule "test/arduino/arduino-builder"]
-	path = test/arduino/arduino-builder
-	url = https://github.com/ljbo82/arduino-builder.git
 [submodule "test/arduino/arduino-core-avr"]
 	path = test/arduino/arduino-core-avr
 	url = https://github.com/ljbo82/arduino-core-avr.git

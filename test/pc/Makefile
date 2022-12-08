@@ -26,6 +26,6 @@ export LIB_TYPE ?= static
 LIB_PROJECTS += ../..
 LIBS += serial0
 
-export CPP_PROJECT_BUILDER ?= $(abspath ../../cpp-project-builder)
+export CPP_PROJECT_BUILDER ?= $(abspath ../arduino/arduino-core-avr/builder/cpp-project-builder)
 
 include $(CPP_PROJECT_BUILDER)/builder.mk

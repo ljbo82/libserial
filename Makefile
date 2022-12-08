@@ -22,8 +22,8 @@ PROJ_NAME    := serial
 PROJ_TYPE    := lib
 PROJ_VERSION := 0.1.0
 
-CFLAGS += -std=gnu99 -fvisibility=hidden
+CFLAGS += -std=gnu99 -fvisibility=hidden -DLIB_VERSION=\"$(PROJ_VERSION)\"
 
-export CPP_PROJECT_BUILDER ?= $(abspath cpp-project-builder)
+export CPP_PROJECT_BUILDER ?= $(abspath test/arduino/arduino-core-avr/builder/cpp-project-builder)
 
 include $(CPP_PROJECT_BUILDER)/builder.mk

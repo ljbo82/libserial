@@ -37,6 +37,12 @@ SOFTWARE.
 #define __DEFAULT_PARITY       SERIAL_PARITY_NONE
 #define __DEFAULT_READ_TIMEOUT 0
 
+// Expected to be passed during compilation
+#ifndef LIB_VERSION
+	#warning "LIB_VERSION is not defined"
+	#define LIB_VERSION "unknown"
+#endif
+
 #define __SET_ERROR(err) errno = errno ? errno : err
 
 struct __serial_list {
@@ -332,15 +338,18 @@ PUBLIC bool CALL serial_purge(serial_t* port, serial_purge_type_e type) {
 }
 
 PUBLIC bool CALL serial_close(serial_t* port) {
-	if (!_serial_native_close(port->nativePort)) {
-		__SET_ERROR(SERIAL_ERROR_IO);
-		return false;
+	if (
+		serial_set_read_timeout(port, 0)
+		&& serial_flush(port)
+		&& _serial_native_close(port->nativePort)
+	) {
+		free(port->portName);
+		free(port);
+		return true;
 	}
 
-	free(port->portName);
-	free(port);
-
-	return true;
+	__SET_ERROR(SERIAL_ERROR_IO);
+	return false;
 }
 
 PUBLIC int32_t CALL serial_available(serial_t* port) {
@@ -427,4 +436,8 @@ PUBLIC bool CALL serial_flush(serial_t* port) {
 		__SET_ERROR(SERIAL_ERROR_IO);
 
 	return result;
+}
+
+PUBLIC const char* CALL serial_version() {
+	return LIB_VERSION;
 }
