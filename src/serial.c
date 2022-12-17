@@ -357,14 +357,7 @@ PUBLIC int32_t CALL serial_available(serial_t* port) {
 }
 
 PUBLIC int32_t CALL serial_read(serial_t* port, void* out, uint32_t len) {
-	static uint8_t mBuf[128];
-
-	if (!out) {
-		out = mBuf;
-		if (len > sizeof(mBuf)) {
-			len = sizeof(mBuf);
-		}
-	}
+	static uint8_t nullBuffer;
 
 	len = len > (uint32_t) INT32_MAX ? INT32_MAX : len;
 
@@ -375,7 +368,7 @@ PUBLIC int32_t CALL serial_read(serial_t* port, void* out, uint32_t len) {
 
 	while (remaining > 0) {
 		errnoWasZero = errno == 0;
-		mRead = _serial_native_read(port->nativePort, out, remaining);
+		mRead = _serial_native_read(port->nativePort, (out ? out : &nullBuffer), (out ? remaining : 1));
 
 		if (mRead > 0) {
 			remaining -= mRead;
