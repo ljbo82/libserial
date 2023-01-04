@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022 Leandro José Britto de Oliveira
+Copyright (c) 2023 Leandro José Britto de Oliveira
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,14 +19,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 #pragma once
 
-#if DEBUG_ENABLED
-	#warning "DEBUG INFO IS BEING ADDED TO FIRMWARE"
-	#include <stdio.h>
-	extern char debugBuffer[256];
-	#define DEBUG(msg, ...) sprintf(debugBuffer, "\033[90m[DEBUG][%s:%d] " msg "\033[0m\r", __FILE__, __LINE__, ##__VA_ARGS__); Serial.print(debugBuffer); Serial.flush();
-#else
-	#define DEBUG(msg, ...)
-#endif
+namespace message {
+	const char* nextToken(char** strPtr);
+
+	void PING(const char* id, char* data);
+
+	void PROT(const char* id, char* data);
+
+	void BLINK(const char* id, char* data);
+
+	void noHandler(const char* id, char* data);
+};

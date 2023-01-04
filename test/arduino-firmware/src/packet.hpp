@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022 Leandro José Britto de Oliveira
+Copyright (c) 2023 Leandro José Britto de Oliveira
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,26 +19,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 #pragma once
 
-#include <Arduino.h>
+#include <stdint.h>
 
-#define COMM_DEFAULT_SPEED 9600
-#define COMM_DEFAULT_CFG   SERIAL_8N1
+namespace packet {
+	void PING(uint8_t id, void* data, uint8_t szData);
 
-namespace Comm {
+	void PROT(uint8_t id,void* data, uint8_t szData);
 
-void init(long speed = COMM_DEFAULT_SPEED, uint8_t cfg = COMM_DEFAULT_CFG);
-
-void purge();
-
-const char* readMsg();
-
-void sendMsg(const char* msg);
-
-void dispatch(const char* cmd);
-
-const char* nextParam(const char** params, char* out);
-
-} // namespace comm
+	void noHandler(uint8_t id,void* data, uint8_t szData);
+};

@@ -18,12 +18,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+CPP_PROJECT_BUILDER ?= make
+
 PROJ_NAME    := serial
 PROJ_TYPE    := lib
-PROJ_VERSION := 0.1.0
 
-CFLAGS += -std=gnu99 -fvisibility=hidden -DLIB_VERSION=\"$(PROJ_VERSION)\"
+include $(CPP_PROJECT_BUILDER)/git.mk
+PROJ_VERSION := $(GIT_VERSION)
 
-export CPP_PROJECT_BUILDER ?= $(abspath test/arduino/arduino-core-avr/builder/cpp-project-builder)
+CFLAGS += -std=gnu99 -DLIB_VERSION=\"$(PROJ_VERSION)\"
 
 include $(CPP_PROJECT_BUILDER)/builder.mk

@@ -34,6 +34,8 @@ SOFTWARE.
 	"terminal.integrated.defaultProfile.windows": "Cygwin",
 	"files.associations": {
 		"*.h": "c",
-		"*.c": "c"
+		"*.c": "c",
+		"*.hpp": "cpp",
+		"*.cpp": "cpp"
 	}
 }

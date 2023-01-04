@@ -99,7 +99,7 @@ bool _serial_native_close(serial_native_port_t nativePort);
  * @return On success, returns the number of bytes available for read
  *         (<code>&gt;= 0</code>). Otherwise, a negative value will be returned.
 */
-int32_t _serial_native_available(serial_native_port_t nativePort);
+int32_t _serial_native_available(const serial_native_port_t nativePort);
 
 /**
  * @brief Reads data from a port.

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022 Leandro José Britto de Oliveira
+Copyright (c) 2023 Leandro José Britto de Oliveira
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,42 +19,33 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+#pragma once
 
-{
-	// Use IntelliSense to learn about possible attributes.
-	// Hover to view descriptions of existing attributes.
-	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-	"version": "0.2.0",
-	"configurations": [
-		{
-			"name": "test-app",
-			"program": "",
-			"cwd": ".",
-			"type": "cppdbg",
-			"request": "launch",
-			"args": [],
-			"stopAtEntry": true,
-			"externalConsole": false,
-			"MIMode": "gdb",
-			"linux": {
-				"name": "test-app",
-				"type": "cppdbg",
-				"request": "launch",
-				"program": "${workspaceFolder}/output/vscode/test/app/dist/bin/serial-demo0",
-			},
-			"windows": {
-				"name": "test-app",
-				"type": "cppdbg",
-				"request": "launch",
-				"program": "${workspaceFolder}\\output\\vscode\\test\\app\\dist\\bin\\serial-demo0.exe"
-			},
-			"setupCommands": [
-				{
-					"text": "-enable-pretty-printing",
-					"ignoreFailures": true
-				}
-			],
-			"preLaunchTask": "test-app"
-		}
-	]
-}
+#include <Arduino.h>
+
+namespace dispatcher {
+
+typedef void (*MessageHandlerCb)(const char* id, char* data);
+
+struct MessageHandler {
+	const char*      id;
+	MessageHandlerCb cb;
+};
+
+typedef void (*PacketHandlerCb)(uint8_t id, void* data, uint8_t szData);
+
+struct PacketHandler {
+	uint8_t         id;
+	PacketHandlerCb cb;
+};
+
+void init(
+	const MessageHandler msgHandlers[], MessageHandlerCb msgNoHandler,
+	const PacketHandler packetHandlers[], PacketHandlerCb packetNoHandler
+);
+
+void dispatch(char* msg);
+
+void dispatch(void* packet, uint8_t szPacket);
+
+} // namespace comm

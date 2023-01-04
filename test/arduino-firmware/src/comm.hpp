@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022 Leandro José Britto de Oliveira
+Copyright (c) 2023 Leandro José Britto de Oliveira
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,33 +19,64 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+#pragma once
 
-#include <Arduino.h>
-#include "Comm.hpp"
+#include <stdint.h>
 
-void setup() {
-	Comm::init();
-	pinMode(LED_BUILTIN, OUTPUT);
-}
+#define COMM_DEFAULT_SPEED 9600
+#define COMM_DEFAULT_CFG   comm::Config::CONFIG_8N1
+#define COMM_DEFAULT_MODE  comm::Mode::MESSAGE
 
-static void __blink() {
-	static bool state = true;
-	static long timestamp = 0;
-	static bool inited = false;
+namespace comm {
 
-	if (!inited) {
-		timestamp = millis();
-		inited = true;
-	}
+enum class Config {
+	CONFIG_5N1,
+	CONFIG_6N1,
+	CONFIG_7N1,
+	CONFIG_8N1,
+	CONFIG_5N2,
+	CONFIG_6N2,
+	CONFIG_7N2,
+	CONFIG_8N2,
+	CONFIG_5E1,
+	CONFIG_6E1,
+	CONFIG_7E1,
+	CONFIG_8E1,
+	CONFIG_5E2,
+	CONFIG_6E2,
+	CONFIG_7E2,
+	CONFIG_8E2,
+	CONFIG_5O1,
+	CONFIG_6O1,
+	CONFIG_7O1,
+	CONFIG_8O1,
+	CONFIG_5O2,
+	CONFIG_6O2,
+	CONFIG_7O2,
+	CONFIG_8O2
+};
 
-	digitalWrite(LED_BUILTIN, state ? HIGH : LOW);
-	if (millis() - timestamp > 1000) {
-		state = !state;
-		timestamp = millis();
-	}
-}
+enum class Mode {
+	MESSAGE,
+	PACKET
+};
 
-void loop() {
-	Comm::dispatch(Comm::readMsg());
-	__blink();
-}
+void init(unsigned long speed = COMM_DEFAULT_SPEED, const Config& cfg = COMM_DEFAULT_CFG, Mode mode = COMM_DEFAULT_MODE);
+
+unsigned long getSpeed();
+
+const comm::Config& getCfg();
+
+const comm::Mode& getMode();
+
+char* readMsg();
+
+void* readPacket(uint8_t* lenOut);
+
+void write(const char* msg);
+
+void write(const void* packet, uint8_t szPacket);
+
+void check();
+
+} // namespace comm

@@ -131,7 +131,7 @@ const char* _serial_list_add(serial_list_t* list, const char* element) {
 	return list->elements[list->size - 1];
 }
 
-PUBLIC const char* CALL serial_error_to_str(serial_error_e error) {
+SERIAL_PUBLIC const char* SERIAL_CALL serial_error_to_str(serial_error_e error) {
 	#define __err_to_str(e) #e
 	#define __err_case(e) case e: return __err_to_str(e)
 	switch (error) {
@@ -151,7 +151,7 @@ PUBLIC const char* CALL serial_error_to_str(serial_error_e error) {
 	#undef __err_case
 }
 
-PUBLIC serial_list_t* CALL serial_list_new() {
+SERIAL_PUBLIC serial_list_t* SERIAL_CALL serial_list_new() {
 	serial_list_t* list = malloc(sizeof(serial_list_t));
 
 	if (!list) {
@@ -168,18 +168,18 @@ error:
 	return NULL;
 }
 
-PUBLIC void CALL serial_list_del(serial_list_t* list) {
+SERIAL_PUBLIC void SERIAL_CALL serial_list_del(serial_list_t* list) {
 	for (size_t i = 0; i < list->capacity; i++) {
 		free(list->elements[i]);
 	}
 	free(list);
 }
 
-PUBLIC size_t CALL serial_list_size(const serial_list_t* list) {
+SERIAL_PUBLIC size_t SERIAL_CALL serial_list_size(const serial_list_t* list) {
 	return list->size;
 }
 
-PUBLIC const char* CALL serial_list_item(const serial_list_t* list, size_t index) {
+SERIAL_PUBLIC const char* SERIAL_CALL serial_list_item(const serial_list_t* list, size_t index) {
 	if (index >= list->size) {
 		errno = SERIAL_ERROR_INVALID_PARAM;
 		goto error;
@@ -191,7 +191,7 @@ error:
 	return NULL;
 }
 
-PUBLIC serial_list_t* CALL serial_list_ports(serial_list_t* list) {
+SERIAL_PUBLIC serial_list_t* SERIAL_CALL serial_list_ports(serial_list_t* list) {
 	__serial_list_clear(list);
 
 	if (!_serial_native_list_ports(list))
@@ -205,7 +205,7 @@ error:
 	return NULL;
 }
 
-PUBLIC serial_t* CALL serial_open(const char* portName) {
+SERIAL_PUBLIC serial_t* SERIAL_CALL serial_open(const char* portName) {
 	serial_t* port = malloc(sizeof(serial_t));
 
 	if (!port) {
@@ -258,11 +258,11 @@ error:
 	return NULL;
 }
 
-PUBLIC const char* CALL serial_get_name(const serial_t* port) {
+SERIAL_PUBLIC const char* SERIAL_CALL serial_get_name(const serial_t* port) {
 	return port->portName;
 }
 
-PUBLIC bool CALL serial_config(serial_t* port, const serial_config_t* config) {
+SERIAL_PUBLIC bool SERIAL_CALL serial_config(serial_t* port, const serial_config_t* config) {
 	if (memcmp(&port->config, config, sizeof(serial_config_t)) == 0)
 		return true;
 
@@ -307,11 +307,11 @@ PUBLIC bool CALL serial_config(serial_t* port, const serial_config_t* config) {
 	return true;
 }
 
-PUBLIC void serial_get_config(const serial_t* port, serial_config_t* out) {
+SERIAL_PUBLIC void serial_get_config(const serial_t* port, serial_config_t* out) {
 	*out = port->config;
 }
 
-PUBLIC bool CALL serial_set_read_timeout(serial_t* port, uint32_t millis) {
+SERIAL_PUBLIC bool SERIAL_CALL serial_set_read_timeout(serial_t* port, uint32_t millis) {
 	if (port->readTimeout == millis)
 		return true;
 
@@ -324,11 +324,11 @@ PUBLIC bool CALL serial_set_read_timeout(serial_t* port, uint32_t millis) {
 	return true;
 }
 
-PUBLIC uint32_t CALL serial_get_read_timeout(const serial_t* port) {
+SERIAL_PUBLIC uint32_t SERIAL_CALL serial_get_read_timeout(const serial_t* port) {
 	return port->readTimeout;
 }
 
-PUBLIC bool CALL serial_purge(serial_t* port, serial_purge_type_e type) {
+SERIAL_PUBLIC bool SERIAL_CALL serial_purge(serial_t* port, serial_purge_type_e type) {
 	if (!_serial_native_purge(port->nativePort, type)) {
 		__SET_ERROR(SERIAL_ERROR_IO);
 		return false;
@@ -337,7 +337,7 @@ PUBLIC bool CALL serial_purge(serial_t* port, serial_purge_type_e type) {
 	return true;
 }
 
-PUBLIC bool CALL serial_close(serial_t* port) {
+SERIAL_PUBLIC bool SERIAL_CALL serial_close(serial_t* port) {
 	if (
 		serial_set_read_timeout(port, 0)
 		&& serial_flush(port)
@@ -352,11 +352,11 @@ PUBLIC bool CALL serial_close(serial_t* port) {
 	return false;
 }
 
-PUBLIC int32_t CALL serial_available(serial_t* port) {
+SERIAL_PUBLIC int32_t SERIAL_CALL serial_available(const serial_t* port) {
 	return _serial_native_available(port->nativePort);
 }
 
-PUBLIC int32_t CALL serial_read(serial_t* port, void* out, uint32_t len) {
+SERIAL_PUBLIC int32_t SERIAL_CALL serial_read(serial_t* port, void* out, uint32_t len) {
 	static uint8_t nullBuffer;
 
 	len = len > (uint32_t) INT32_MAX ? INT32_MAX : len;
@@ -400,7 +400,7 @@ PUBLIC int32_t CALL serial_read(serial_t* port, void* out, uint32_t len) {
 	return totalRead;
 }
 
-PUBLIC bool CALL serial_write(serial_t* port, const void* in, uint32_t len) {
+SERIAL_PUBLIC bool SERIAL_CALL serial_write(serial_t* port, const void* in, uint32_t len) {
 	uint32_t remaining = len;
 	int32_t  written;
 
@@ -422,7 +422,7 @@ PUBLIC bool CALL serial_write(serial_t* port, const void* in, uint32_t len) {
 	return true;
 }
 
-PUBLIC bool CALL serial_flush(serial_t* port) {
+SERIAL_PUBLIC bool SERIAL_CALL serial_flush(serial_t* port) {
 	bool result = _serial_native_flush(port->nativePort);
 
 	if (!result)
@@ -431,6 +431,6 @@ PUBLIC bool CALL serial_flush(serial_t* port) {
 	return result;
 }
 
-PUBLIC const char* CALL serial_version() {
+SERIAL_PUBLIC const char* SERIAL_CALL serial_version() {
 	return LIB_VERSION;
 }

@@ -18,23 +18,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+LIB_TYPE ?= shared
+
 ifneq ($(HOST),linux-x64)
     ifneq ($(HOST),linux-x86)
         $(error Unsupported HOST: $(HOST))
     endif
 endif
 
-ifeq ($(LIB_TYPE),static)
-    CFLAGS += -DSTATIC_LIB
+ifeq ($(LIB_TYPE),shared)
+    CFLAGS += -DCOMM_SHARED_LIB
 endif
 
-ifeq ($(NATIVE_HOST),windows-x64)
-    ifeq ($(HOST),linux-x64)
-        CROSS_COMPILE := cygwin-linux-x64-
-    else # ifeq ($(HOST),linux-x86)
-        CROSS_COMPILE := cygwin-linux-x86-
-    endif
-else ifeq ($(NATIVE_HOST),linux-x64)
+ifeq ($(PROJ_TYPE),lib)
+    CFLAGS += -fvisibility=hidden
+endif
+
+ifeq ($(NATIVE_HOST),linux-x64)
     ifeq ($(HOST),linux-x86)
         ifeq ($(origin CROSS_COMPILE),undefined)
             CROSS_COMPILE :=

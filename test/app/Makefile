@@ -21,11 +21,11 @@
 PROJ_NAME := serial-demo
 PROJ_TYPE := app
 
-export LIB_TYPE ?= static
+export LIB_TYPE := static
 
 LIB_PROJECTS += ../..
 LIBS += serial0
 
-export CPP_PROJECT_BUILDER ?= $(abspath ../arduino/arduino-core-avr/builder/cpp-project-builder)
+CPP_PROJECT_BUILDER ?= ../../make
 
 include $(CPP_PROJECT_BUILDER)/builder.mk

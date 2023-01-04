@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022 Leandro José Britto de Oliveira
+Copyright (c) 2023 Leandro José Britto de Oliveira
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,42 +19,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+#pragma once
 
-{
-	// Use IntelliSense to learn about possible attributes.
-	// Hover to view descriptions of existing attributes.
-	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-	"version": "0.2.0",
-	"configurations": [
-		{
-			"name": "test-app",
-			"program": "",
-			"cwd": ".",
-			"type": "cppdbg",
-			"request": "launch",
-			"args": [],
-			"stopAtEntry": true,
-			"externalConsole": false,
-			"MIMode": "gdb",
-			"linux": {
-				"name": "test-app",
-				"type": "cppdbg",
-				"request": "launch",
-				"program": "${workspaceFolder}/output/vscode/test/app/dist/bin/serial-demo0",
-			},
-			"windows": {
-				"name": "test-app",
-				"type": "cppdbg",
-				"request": "launch",
-				"program": "${workspaceFolder}\\output\\vscode\\test\\app\\dist\\bin\\serial-demo0.exe"
-			},
-			"setupCommands": [
-				{
-					"text": "-enable-pretty-printing",
-					"ignoreFailures": true
-				}
-			],
-			"preLaunchTask": "test-app"
-		}
-	]
-}
+#if DEBUG_ENABLED
+	#warning "DEBUG INFO IS BEING ADDED TO FIRMWARE"
+	#include "comm.hpp"
+	#include <stdio.h>
+	extern char debugBuffer[256];
+	#define DEBUG(msg, ...) sprintf(debugBuffer, "\033[90m[DEBUG][%s:%d] " msg "\033[0m", __FILE__, __LINE__, ##__VA_ARGS__); comm::write(debugBuffer)
+#else
+	#define DEBUG(msg, ...)
+#endif

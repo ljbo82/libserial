@@ -27,7 +27,7 @@ SOFTWARE.
 			"id": "arduinoUnoSerialPort",
 			"type": "promptString",
 			"description": "Enter the serial port where Arduino UNO is connected",
-			"default": "/dev/ttyUSB0"
+			"default": "/dev/ttyACM0"
 		},
 		{
 			"id": "arduinoFirmwareMode",
@@ -48,11 +48,11 @@ SOFTWARE.
 	],
 	"tasks": [
 		{
-			"label": "build-pc-test-debug",
+			"label": "test-app",
 			"detail": "Build test application for PC (DEBUG)",
 			"type": "shell",
-			"options": { "cwd": "test/pc" },
-			"command": "make DEBUG=1 V=1 O=../../output/vscode/pc-test",
+			"options": { "cwd": "test/app" },
+			"command": "make DEBUG=1 V=1 O=../../output/vscode/test/app",
 			"group": "build"
 		},
 		{
@@ -67,8 +67,8 @@ SOFTWARE.
 			"label": "arduno-uno-test-firmware",
 			"detail": "Build and upload arduino test firmware",
 			"type": "shell",
-			"options": { "cwd": "test/arduino" },
-			"command": "make V=1 DEBUG=${input:arduinoFirmwareMode} HOST=arduino-avr-uno upload PORT=${input:arduinoUnoSerialPort} O=../../output/vscode/arduino",
+			"options": { "cwd": "test/arduino-firmware" },
+			"command": "make V=1 DEBUG=${input:arduinoFirmwareMode} HOST=arduino-avr-uno upload PORT=${input:arduinoUnoSerialPort} O=../../output/vscode/test/arduino-firmware",
 			"group": "build"
 		}
 	]

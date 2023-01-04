@@ -278,7 +278,7 @@ bool _serial_native_close(serial_native_port_t nativePort) {
 	return true;
 }
 
-int32_t _serial_native_available(serial_native_port_t nativePort) {
+int32_t _serial_native_available(const serial_native_port_t nativePort) {
 	COMSTAT comstat;
 	comstat.cbInQue = 0;
 

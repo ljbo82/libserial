@@ -25,7 +25,8 @@ SOFTWARE.
 		"includePath": [
 			"${workspaceFolder}/src",
 			"${workspaceFolder}/include",
-			"${workspaceFolder}/test/pc/src"
+			"${workspaceFolder}/test/libcomm/include",
+			"${workspaceFolder}/test/app/src"
 		],
 		"defines": []
 	},
@@ -76,8 +77,8 @@ SOFTWARE.
 			"name": "Arduino UNO",
 			"includePath": [
 				"${includePath}",
-				"${workspaceFolder}/test/arduino/arduino-core-avr/variants/standard",
-				"${workspaceFolder}/test/arduino/arduino-core-avr/cores/arduino"
+				"${workspaceFolder}/test/arduino-firmware/arduino-core-avr/variants/standard",
+				"${workspaceFolder}/test/arduino-firmware/arduino-core-avr/cores/arduino"
 			],
 			"defines": [
 				"${defines}",

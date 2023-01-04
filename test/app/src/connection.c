@@ -30,10 +30,10 @@ SOFTWARE.
 #include <stdlib.h>
 
 #define __MSG_MAX_LEN    128
-#define __READ_TIMEOUT   2000
+#define __READ_TIMEOUT   3000
 #define __DEFAULT_BAUD   9600
 #define __DEFAULT_CONFIG CONNECTION_CONFIG_8N1
-#define __CMD_DELIMITER  '\r'
+#define __CMD_DELIMITER  '\n'
 #define __ACK            "ACK"
 #define __NAK            "NAK"
 

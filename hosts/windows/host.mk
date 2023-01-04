@@ -21,7 +21,9 @@
 LIB_TYPE ?= shared
 
 ifeq ($(LIB_TYPE),shared)
-    CFLAGS += -DBUILD_DLL
-else
-    CFLAGS += -DSTATIC_LIB
+    CFLAGS += -DCOMM_SHARED_LIB
+endif
+
+ifeq ($(PROJ_TYPE),lib)
+    CFLAGS += -fvisibility=hidden
 endif

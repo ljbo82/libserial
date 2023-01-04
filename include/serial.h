@@ -28,41 +28,27 @@ SOFTWARE.
 #include <errno.h>
 
 #if defined _WIN32 || defined __CYGWIN__
-	#if defined(BUILD_DLL) && defined(STATIC_LIB)
-		#error BUILD_DLL and STATIC_LIB are both defined
-	#endif
-
-	#ifdef BUILD_DLL
+	#if defined(SERIAL_BUILD_SHARED_LIB)
 		/** @internal */
-		#define PUBLIC __declspec(dllexport)
+		#define SERIAL_PUBLIC __declspec(dllexport)
 	#else
-		#ifndef STATIC_LIB
-			/** @internal */
-			#define PUBLIC __declspec(dllimport)
-		#else
-			/** @internal */
-			#define PUBLIC
-		#endif
+		/** @internal */
+		#define SERIAL_PUBLIC
 	#endif
 
 	/** @internal */
-	#define CALL __cdecl
+	#define SERIAL_CALL __cdecl
 #else
-	#ifdef STATIC_LIB
+	#if defined(SERIAL_BUILD_SHARED_LIB) && __GNUC__ >= 4
 		/** @internal */
-		#define PUBLIC
+		#define SERIAL_PUBLIC __attribute__ ((visibility ("default")))
 	#else
-		#if __GNUC__ >= 4
-			/** @internal */
-			#define PUBLIC __attribute__ ((visibility ("default")))
-		#else
-			/** @internal */
-			#define PUBLIC
-		#endif
+		/** @internal */
+		#define SERIAL_PUBLIC
 	#endif
 
 	/** @internal */
-	#define CALL
+	#define SERIAL_CALL
 #endif
 
 typedef struct __serial_list serial_list_t;
@@ -128,43 +114,43 @@ struct serial_config {
 extern "C" {
 #endif
 
-PUBLIC const char* CALL serial_error_to_str(serial_error_e error);
+SERIAL_PUBLIC const char* SERIAL_CALL serial_error_to_str(serial_error_e error);
 
-PUBLIC serial_list_t* CALL serial_list_new();
+SERIAL_PUBLIC serial_list_t* SERIAL_CALL serial_list_new();
 
-PUBLIC void CALL serial_list_del(serial_list_t* list);
+SERIAL_PUBLIC void SERIAL_CALL serial_list_del(serial_list_t* list);
 
-PUBLIC size_t CALL serial_list_size(const serial_list_t* list);
+SERIAL_PUBLIC size_t SERIAL_CALL serial_list_size(const serial_list_t* list);
 
-PUBLIC const char* CALL serial_list_item(const serial_list_t* list, size_t index);
+SERIAL_PUBLIC const char* SERIAL_CALL serial_list_item(const serial_list_t* list, size_t index);
 
-PUBLIC serial_list_t* CALL serial_list_ports(serial_list_t* list);
+SERIAL_PUBLIC serial_list_t* SERIAL_CALL serial_list_ports(serial_list_t* list);
 
-PUBLIC serial_t* CALL serial_open(const char* portName);
+SERIAL_PUBLIC serial_t* SERIAL_CALL serial_open(const char* portName);
 
-PUBLIC const char* CALL serial_get_name(const serial_t* port);
+SERIAL_PUBLIC const char* SERIAL_CALL serial_get_name(const serial_t* port);
 
-PUBLIC bool CALL serial_config(serial_t* port, const serial_config_t* config);
+SERIAL_PUBLIC bool SERIAL_CALL serial_config(serial_t* port, const serial_config_t* config);
 
-PUBLIC void serial_get_config(const serial_t* port, serial_config_t* out);
+SERIAL_PUBLIC void serial_get_config(const serial_t* port, serial_config_t* out);
 
-PUBLIC bool CALL serial_set_read_timeout(serial_t* port, uint32_t millis);
+SERIAL_PUBLIC bool SERIAL_CALL serial_set_read_timeout(serial_t* port, uint32_t millis);
 
-PUBLIC uint32_t CALL serial_get_read_timeout(const serial_t* port);
+SERIAL_PUBLIC uint32_t SERIAL_CALL serial_get_read_timeout(const serial_t* port);
 
-PUBLIC bool CALL serial_purge(serial_t* port, serial_purge_type_e type);
+SERIAL_PUBLIC bool SERIAL_CALL serial_purge(serial_t* port, serial_purge_type_e type);
 
-PUBLIC bool CALL serial_close(serial_t* port);
+SERIAL_PUBLIC bool SERIAL_CALL serial_close(serial_t* port);
 
-PUBLIC int32_t CALL serial_available(serial_t* port);
+SERIAL_PUBLIC int32_t SERIAL_CALL serial_available(const serial_t* port);
 
-PUBLIC int32_t CALL serial_read(serial_t* port, void* out, uint32_t len);
+SERIAL_PUBLIC int32_t SERIAL_CALL serial_read(serial_t* port, void* out, uint32_t len);
 
-PUBLIC bool CALL serial_write(serial_t* port, const void* in, uint32_t len);
+SERIAL_PUBLIC bool SERIAL_CALL serial_write(serial_t* port, const void* in, uint32_t len);
 
-PUBLIC bool CALL serial_flush(serial_t* port);
+SERIAL_PUBLIC bool SERIAL_CALL serial_flush(serial_t* port);
 
-PUBLIC const char* CALL serial_version();
+SERIAL_PUBLIC const char* SERIAL_CALL serial_version();
 
 #ifdef __cplusplus
 } // extern "C"
