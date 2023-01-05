@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022 Leandro José Britto de Oliveira
+Copyright (c) 2023 Leandro José Britto de Oliveira
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,27 +19,24 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+#include "led.hpp"
+#include "hal.hpp"
 
-#pragma once
+static unsigned long __blinkInterval = LED_DEFAULT_BLINK_INTERVAL;
+static bool          __state         = true;
+static unsigned long __timestamp     = 0;
 
-#include "connection/config.h"
+void led::init(unsigned long blinkInterval) {
+	__state         = true;
+	__timestamp     = hal::millis();
+	__blinkInterval = blinkInterval;
+}
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stddef.h>
+void led::check() {
+	hal::led::set(__state);
 
-typedef struct __connection connection_t;
-
-connection_t* connection_open(const char* portName);
-
-bool connection_config(connection_t* connection, uint32_t baud, connection_config_e config);
-
-bool connection_close(connection_t* connection);
-
-char* connection_read_msg(connection_t* connection);
-
-void* connection_read_packet(connection_t* connection, uint8_t* lenOut);
-
-bool connection_write_msg(connection_t* connection, const char* msg);
-
-bool connection_write_packet(connection_t* connection, const void* packet, uint8_t szPacket);
+	if (hal::millis() - __timestamp > __blinkInterval) {
+		__state     = !__state;
+		__timestamp = hal::millis();
+	}
+}

@@ -64,11 +64,19 @@ SOFTWARE.
 			"group": "build"
 		},
 		{
-			"label": "arduno-uno-test-firmware",
-			"detail": "Build and upload arduino test firmware",
+			"label": "test-firmware-arduino-avr-uno",
+			"detail": "Build and upload arduino-avr-uno test firmware",
 			"type": "shell",
-			"options": { "cwd": "test/arduino-firmware" },
-			"command": "make V=1 DEBUG=${input:arduinoFirmwareMode} HOST=arduino-avr-uno upload PORT=${input:arduinoUnoSerialPort} O=../../output/vscode/test/arduino-firmware",
+			"options": { "cwd": "test/firmware" },
+			"command": "make V=1 DEBUG=${input:arduinoFirmwareMode} HOST=arduino-avr-uno upload PORT=${input:arduinoUnoSerialPort} O=../../output/vscode/test/firmware/arduino-avr-uno",
+			"group": "build"
+		},
+		{
+			"label": "test-firmware-linux",
+			"detail": "Build and upload linux test firmware",
+			"type": "shell",
+			"options": { "cwd": "test/firmware" },
+			"command": "make V=1 DEBUG=1 HOST=linux-x64 O=../../output/vscode/test/firmware/linux-x64",
 			"group": "build"
 		}
 	]

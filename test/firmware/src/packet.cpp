@@ -21,12 +21,36 @@ SOFTWARE.
 */
 #include "packet.hpp"
 #include "comm.hpp"
+#include "debug.hpp"
 
 #include <comm.h>
-#include <Arduino.h>
 
-#define __ACK 0
-#define __NAK 1
+#define __ACK        0
+#define __NAK        1
+#define __SERIAL_5N1 0x00
+#define __SERIAL_6N1 0x02
+#define __SERIAL_7N1 0x04
+#define __SERIAL_8N1 0x06
+#define __SERIAL_5N2 0x08
+#define __SERIAL_6N2 0x0A
+#define __SERIAL_7N2 0x0C
+#define __SERIAL_8N2 0x0E
+#define __SERIAL_5E1 0x20
+#define __SERIAL_6E1 0x22
+#define __SERIAL_7E1 0x24
+#define __SERIAL_8E1 0x26
+#define __SERIAL_5E2 0x28
+#define __SERIAL_6E2 0x2A
+#define __SERIAL_7E2 0x2C
+#define __SERIAL_8E2 0x2E
+#define __SERIAL_5O1 0x30
+#define __SERIAL_6O1 0x32
+#define __SERIAL_7O1 0x34
+#define __SERIAL_8O1 0x36
+#define __SERIAL_5O2 0x38
+#define __SERIAL_6O2 0x3A
+#define __SERIAL_7O2 0x3C
+#define __SERIAL_8O2 0x3E
 
 #define READ_DATA(type, data) **((type**)(data)); (*(type**)(data))++
 
@@ -35,79 +59,79 @@ static void __sendAck(bool accepted) {
 	comm::write(&packet, 1);
 }
 
-static bool __toConfig(uint8_t rawCfg, comm::Config* out) {
+static bool __toConfig(uint8_t rawCfg, hal::serial::Config* out) {
 	switch (rawCfg) {
-	case SERIAL_5N1:
-		if (out) *out = comm::Config::CONFIG_5N1;
+	case __SERIAL_5N1:
+		if (out) *out = hal::serial::Config::CONFIG_5N1;
 		break;
-	case SERIAL_6N1:
-		if (out) *out = comm::Config::CONFIG_6N1;
+	case __SERIAL_6N1:
+		if (out) *out = hal::serial::Config::CONFIG_6N1;
 		break;
-	case SERIAL_7N1:
-		if (out) *out = comm::Config::CONFIG_7N1;
+	case __SERIAL_7N1:
+		if (out) *out = hal::serial::Config::CONFIG_7N1;
 		break;
-	case SERIAL_8N1:
-		if (out) *out = comm::Config::CONFIG_8N1;
+	case __SERIAL_8N1:
+		if (out) *out = hal::serial::Config::CONFIG_8N1;
 		break;
-	case SERIAL_5N2:
-		if (out) *out = comm::Config::CONFIG_5N2;
+	case __SERIAL_5N2:
+		if (out) *out = hal::serial::Config::CONFIG_5N2;
 		break;
-	case SERIAL_6N2:
-		if (out) *out = comm::Config::CONFIG_6N2;
+	case __SERIAL_6N2:
+		if (out) *out = hal::serial::Config::CONFIG_6N2;
 		break;
-	case SERIAL_7N2:
-		if (out) *out = comm::Config::CONFIG_7N2;
+	case __SERIAL_7N2:
+		if (out) *out = hal::serial::Config::CONFIG_7N2;
 		break;
-	case SERIAL_8N2:
-		if (out) *out = comm::Config::CONFIG_8N2;
+	case __SERIAL_8N2:
+		if (out) *out = hal::serial::Config::CONFIG_8N2;
 		break;
-	case SERIAL_5E1:
-		if (out) *out = comm::Config::CONFIG_5E1;
+	case __SERIAL_5E1:
+		if (out) *out = hal::serial::Config::CONFIG_5E1;
 		break;
-	case SERIAL_6E1:
-		if (out) *out = comm::Config::CONFIG_6E1;
+	case __SERIAL_6E1:
+		if (out) *out = hal::serial::Config::CONFIG_6E1;
 		break;
-	case SERIAL_7E1:
-		if (out) *out = comm::Config::CONFIG_7E1;
+	case __SERIAL_7E1:
+		if (out) *out = hal::serial::Config::CONFIG_7E1;
 		break;
-	case SERIAL_8E1:
-		if (out) *out = comm::Config::CONFIG_8E1;
+	case __SERIAL_8E1:
+		if (out) *out = hal::serial::Config::CONFIG_8E1;
 		break;
-	case SERIAL_5E2:
-		if (out) *out = comm::Config::CONFIG_5E2;
+	case __SERIAL_5E2:
+		if (out) *out = hal::serial::Config::CONFIG_5E2;
 		break;
-	case SERIAL_6E2:
-		if (out) *out = comm::Config::CONFIG_6E2;
+	case __SERIAL_6E2:
+		if (out) *out = hal::serial::Config::CONFIG_6E2;
 		break;
-	case SERIAL_7E2:
-		if (out) *out = comm::Config::CONFIG_7E2;
+	case __SERIAL_7E2:
+		if (out) *out = hal::serial::Config::CONFIG_7E2;
 		break;
-	case SERIAL_8E2:
-		if (out) *out = comm::Config::CONFIG_8E2;
+	case __SERIAL_8E2:
+		if (out) *out = hal::serial::Config::CONFIG_8E2;
 		break;
-	case SERIAL_5O1:
-		if (out) *out = comm::Config::CONFIG_5O1;
+	case __SERIAL_5O1:
+		if (out) *out = hal::serial::Config::CONFIG_5O1;
 		break;
-	case SERIAL_6O1:
-		if (out) *out = comm::Config::CONFIG_6O1;
+	case __SERIAL_6O1:
+		if (out) *out = hal::serial::Config::CONFIG_6O1;
 		break;
-	case SERIAL_7O1:
-		if (out) *out = comm::Config::CONFIG_7O1;
+	case __SERIAL_7O1:
+		if (out) *out = hal::serial::Config::CONFIG_7O1;
 		break;
-	case SERIAL_8O1:
-		if (out) *out = comm::Config::CONFIG_8O1;
+	case __SERIAL_8O1:
+		if (out) *out = hal::serial::Config::CONFIG_8O1;
 		break;
-	case SERIAL_5O2:
-		if (out) *out = comm::Config::CONFIG_5O2;
+	case __SERIAL_5O2:
+		if (out) *out = hal::serial::Config::CONFIG_5O2;
 		break;
-	case SERIAL_6O2:
-		if (out) *out = comm::Config::CONFIG_6O2;
+	case __SERIAL_6O2:
+		if (out) *out = hal::serial::Config::CONFIG_6O2;
 		break;
-	case SERIAL_7O2:
-		if (out) *out = comm::Config::CONFIG_7O2;
+	case __SERIAL_7O2:
+		if (out) *out = hal::serial::Config::CONFIG_7O2;
 		break;
-	case SERIAL_8O2:
-		if (out) *out = comm::Config::CONFIG_8O2;
+	case __SERIAL_8O2:
+		if (out) *out = hal::serial::Config::CONFIG_8O2;
 		break;
 	default:
 		return false;
@@ -144,7 +168,7 @@ void packet::PROT(uint8_t id, void* data, uint8_t szData) {
 	uint8_t    rawCfg;
 	uint8_t    rawMode;
 
-	comm::Config cfg;
+	hal::serial::Config cfg;
 	comm::Mode   mode;
 
 	if (szData != 6) goto nak;

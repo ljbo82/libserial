@@ -21,31 +21,11 @@ SOFTWARE.
 */
 #pragma once
 
-#include <Arduino.h>
-
-namespace dispatcher {
-
-typedef void (*MessageHandlerCb)(const char* id, char* data);
-
-struct MessageHandler {
-	const char*      id;
-	MessageHandlerCb cb;
-};
-
-typedef void (*PacketHandlerCb)(uint8_t id, void* data, uint8_t szData);
-
-struct PacketHandler {
-	uint8_t         id;
-	PacketHandlerCb cb;
-};
-
-void init(
-	const MessageHandler msgHandlers[], MessageHandlerCb msgNoHandler,
-	const PacketHandler packetHandlers[], PacketHandlerCb packetNoHandler
-);
-
-void dispatch(char* msg);
-
-void dispatch(void* packet, uint8_t szPacket);
-
-} // namespace comm
+#if DEBUG_ENABLED
+	#include "hal.hpp"
+	#include <stdio.h>
+	extern char debugBuffer[256];
+	#define DEBUG(msg, ...) sprintf(debugBuffer, "\033[90m[DEBUG][%s:%d] " msg "\033[0m", __FILE__, __LINE__, ##__VA_ARGS__); hal::debug(debugBuffer)
+#else
+	#define DEBUG(msg, ...)
+#endif

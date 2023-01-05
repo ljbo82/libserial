@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022 Leandro José Britto de Oliveira
+Copyright (c) 2023 Leandro José Britto de Oliveira
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,27 +19,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 #pragma once
 
-#include "connection/config.h"
+#include <serial.h>
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stddef.h>
+namespace hal {
+	namespace serial {
+		serial_t* open();
 
-typedef struct __connection connection_t;
+		bool close();
 
-connection_t* connection_open(const char* portName);
+	} // namespace serial
 
-bool connection_config(connection_t* connection, uint32_t baud, connection_config_e config);
-
-bool connection_close(connection_t* connection);
-
-char* connection_read_msg(connection_t* connection);
-
-void* connection_read_packet(connection_t* connection, uint8_t* lenOut);
-
-bool connection_write_msg(connection_t* connection, const char* msg);
-
-bool connection_write_packet(connection_t* connection, const void* packet, uint8_t szPacket);
+} // namespace hall

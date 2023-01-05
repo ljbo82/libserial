@@ -28,9 +28,6 @@ SOFTWARE.
 
 #include "_serial.h"
 
-/** @brief Abstraction for a native serial port. */
-typedef void* serial_native_port_t;
-
 /**
  * @brief Populates a list with the names of available serial platforms.
  *
@@ -51,7 +48,7 @@ serial_list_t* _serial_native_list_ports(serial_list_t* list);
  *
  * @return On success returns a non-null value. Otherwise, returns \c NULL.
 */
-serial_native_port_t _serial_native_open(const char* portName);
+void* _serial_native_open(const char* portName);
 
 /**
  * @brief Configures the native port
@@ -59,7 +56,7 @@ serial_native_port_t _serial_native_open(const char* portName);
  * @param nativePort Native serial port.
  * @param config Serial port configuration.
 */
-bool _serial_native_config(serial_native_port_t nativePort, const serial_config_t* config);
+bool _serial_native_config(void* nativePort, const serial_config_t* config);
 
 /**
  * @brief Sets the timeout used while reading data.
@@ -70,7 +67,7 @@ bool _serial_native_config(serial_native_port_t nativePort, const serial_config_
  *
  * @return A boolean indicating if operation was successfull.
 */
-bool _serial_native_set_read_timeout(serial_native_port_t nativePort, uint32_t millis);
+bool _serial_native_set_read_timeout(void* nativePort, uint32_t millis);
 
 /**
  * @brief Purges a port.
@@ -80,7 +77,7 @@ bool _serial_native_set_read_timeout(serial_native_port_t nativePort, uint32_t m
  *
  * @return A boolean indicating if operation was successfull.
 */
-bool _serial_native_purge(serial_native_port_t nativePort, serial_purge_type_e type);
+bool _serial_native_purge(void* nativePort, serial_purge_type_e type);
 
 /**
  * @brief Closes a native port previously open using _serial_native_open().
@@ -89,7 +86,7 @@ bool _serial_native_purge(serial_native_port_t nativePort, serial_purge_type_e t
  *
  * @return A boolean indicating if operation was successfull.
 */
-bool _serial_native_close(serial_native_port_t nativePort);
+bool _serial_native_close(void* nativePort);
 
 /**
  * @brief Returns the number of bytes available for read on the port.
@@ -99,7 +96,7 @@ bool _serial_native_close(serial_native_port_t nativePort);
  * @return On success, returns the number of bytes available for read
  *         (<code>&gt;= 0</code>). Otherwise, a negative value will be returned.
 */
-int32_t _serial_native_available(const serial_native_port_t nativePort);
+int32_t _serial_native_available(const void* nativePort);
 
 /**
  * @brief Reads data from a port.
@@ -113,7 +110,7 @@ int32_t _serial_native_available(const serial_native_port_t nativePort);
  *         returns a negative value (zero is returned on timeout while
  *         reading data).
 */
-int32_t _serial_native_read(serial_native_port_t nativePort, void* out, uint32_t len);
+int32_t _serial_native_read(void* nativePort, void* out, uint32_t len);
 
 /**
  * @brief Writes data into a port.
@@ -127,7 +124,7 @@ int32_t _serial_native_read(serial_native_port_t nativePort, void* out, uint32_t
  *         returns a negative value (zero is returned on timeout while
  *         writing data).
 */
-int32_t _serial_native_write(serial_native_port_t nativePort, const void* in, uint32_t len);
+int32_t _serial_native_write(void* nativePort, const void* in, uint32_t len);
 
 /**
  * @brief Flushes any pending data.
@@ -136,4 +133,4 @@ int32_t _serial_native_write(serial_native_port_t nativePort, const void* in, ui
  *
  * @return A boolean indicating if operation was successful.
 */
-bool _serial_native_flush(serial_native_port_t nativePort);
+bool _serial_native_flush(void* nativePort);

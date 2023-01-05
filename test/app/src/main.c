@@ -23,7 +23,8 @@ SOFTWARE.
 #include <serial.h>
 
 #include "console.h"
-#include "connection/cmd.h"
+#include "connection/msg.h"
+#include "connection/pkt.h"
 
 #include <string.h>
 #include <errno.h>
@@ -34,12 +35,12 @@ int main(int argc, char** argv) {
 	serial_list_t* list = serial_list_new();
 
 	if (!serial_list_ports(list)) {
-		console_printf("[ERROR] Error listing serial ports\n");
+		console_color_printf(CONSOLE_ANSI_COLOR_BRIGHT_RED, "[ERROR] Error listing serial ports\n");
 		return 1;
 	}
 
 	if (serial_list_size(list) == 0) {
-		console_printf("[ERROR] There is no serial ports\n");
+		console_color_printf(CONSOLE_ANSI_COLOR_BRIGHT_RED, "[ERROR] There is no serial ports\n");
 		return 1;
 	}
 
@@ -64,10 +65,13 @@ int main(int argc, char** argv) {
 	}
 
 	serial_list_del(list);
+	__ASSERT(connection_config(connection, 9600, CONNECTION_CONFIG_8N1));
+	__ASSERT(connection_msg_ping(connection, "hello"));
+	__ASSERT(connection_msg_protocol(connection, 9600, CONNECTION_CONFIG_8N1, CONNECTION_MODE_PACKET));
+	__ASSERT(connection_pkt_ping(connection, "world!", strlen("world!")));
+	__ASSERT(connection_pkt_protocol(connection, 2400, CONNECTION_CONFIG_7E2, CONNECTION_MODE_MESSAGE));
+	__ASSERT(connection_msg_ping(connection, "HELLO"));
 
-	__ASSERT(connection_cmd_ping(connection, "hello"));
-	__ASSERT(connection_cmd_protocol(connection, 2400, CONNECTION_CONFIG_7E2));
-	__ASSERT(connection_cmd_ping(connection, "world!"));
 	__ASSERT(connection_close(connection));
 
 	console_color_printf(CONSOLE_ANSI_COLOR_BRIGHT_GREEN, "Success!\n");

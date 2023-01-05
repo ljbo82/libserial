@@ -19,26 +19,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "led.hpp"
-#include <Arduino.h>
 
-static unsigned long __blinkInterval = LED_DEFAULT_BLINK_INTERVAL;
-static bool          __state         = true;
-static unsigned long __timestamp     = 0;
+#pragma once
 
-void led::init(unsigned long blinkInterval) {
-	__state         = true;
-	__timestamp     = millis();
-	__blinkInterval = blinkInterval;
+typedef enum connection_mode connection_mode_e;
 
-	pinMode(LED_BUILTIN, OUTPUT);
-}
-
-void led::check() {
-	digitalWrite(LED_BUILTIN, __state ? HIGH : LOW);
-
-	if (millis() - __timestamp > __blinkInterval) {
-		__state     = !__state;
-		__timestamp = millis();
-	}
-}
+enum connection_mode {
+	CONNECTION_MODE_MESSAGE = 0,
+	CONNECTION_MODE_PACKET  = 1
+};

@@ -215,7 +215,7 @@ SERIAL_PUBLIC serial_t* SERIAL_CALL serial_open(const char* portName) {
 
 	port->nativePort = _serial_native_open(portName);
 
-	if (port->nativePort < 0)
+	if (!port->nativePort)
 		goto error;
 
 	port->config.baud     = __DEFAULT_BAUD;

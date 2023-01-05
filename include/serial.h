@@ -55,18 +55,6 @@ typedef struct __serial_list serial_list_t;
 
 typedef struct __serial serial_t;
 
-typedef enum serial_data_bits serial_data_bits_e;
-
-typedef enum serial_parity serial_parity_e;
-
-typedef enum serial_stop_bits serial_stop_bits_e;
-
-typedef enum serial_purge_type serial_purge_type_e;
-
-typedef enum serial_error serial_error_e;
-
-typedef struct serial_config serial_config_t;
-
 enum serial_data_bits {
 	SERIAL_DATA_BITS_5 = 5,
 	SERIAL_DATA_BITS_6,
@@ -102,6 +90,18 @@ enum serial_error {
 	SERIAL_ERROR_INVALID_PARAM = -6,
 	SERIAL_ERROR_TIMEOUT       = -7
 };
+
+typedef enum serial_data_bits serial_data_bits_e;
+
+typedef enum serial_parity serial_parity_e;
+
+typedef enum serial_stop_bits serial_stop_bits_e;
+
+typedef enum serial_purge_type serial_purge_type_e;
+
+typedef enum serial_error serial_error_e;
+
+typedef struct serial_config serial_config_t;
 
 struct serial_config {
 	uint32_t           baud;

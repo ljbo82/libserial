@@ -21,12 +21,62 @@ SOFTWARE.
 */
 #pragma once
 
+#include <stdint.h>
+
+namespace hal {
+
+namespace serial {
+	enum class Config {
+		CONFIG_5N1,
+		CONFIG_6N1,
+		CONFIG_7N1,
+		CONFIG_8N1,
+		CONFIG_5N2,
+		CONFIG_6N2,
+		CONFIG_7N2,
+		CONFIG_8N2,
+		CONFIG_5E1,
+		CONFIG_6E1,
+		CONFIG_7E1,
+		CONFIG_8E1,
+		CONFIG_5E2,
+		CONFIG_6E2,
+		CONFIG_7E2,
+		CONFIG_8E2,
+		CONFIG_5O1,
+		CONFIG_6O1,
+		CONFIG_7O1,
+		CONFIG_8O1,
+		CONFIG_5O2,
+		CONFIG_6O2,
+		CONFIG_7O2,
+		CONFIG_8O2
+	};
+
+	bool config(uint32_t baud, Config config);
+
+	bool setReadTimeout(uint32_t timeout);
+
+	uint32_t availableRead();
+
+	uint32_t availableWrite();
+
+	int32_t read(void* out, uint32_t len);
+
+	bool write(const void* in, uint32_t len);
+
+	bool flush();
+} // namespace serial
+
+namespace led {
+	void set(bool on);
+
+} // namespace led
+
+uint32_t millis();
+
 #if DEBUG_ENABLED
-	#warning "DEBUG INFO IS BEING ADDED TO FIRMWARE"
-	#include "comm.hpp"
-	#include <stdio.h>
-	extern char debugBuffer[256];
-	#define DEBUG(msg, ...) sprintf(debugBuffer, "\033[90m[DEBUG][%s:%d] " msg "\033[0m", __FILE__, __LINE__, ##__VA_ARGS__); comm::write(debugBuffer)
-#else
-	#define DEBUG(msg, ...)
+	void debug(const char* msg);
 #endif
+
+} // namespace hal

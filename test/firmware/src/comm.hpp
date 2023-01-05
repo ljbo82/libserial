@@ -19,19 +19,37 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "debug.hpp"
-#include "comm.hpp"
-#include "led.hpp"
+#pragma once
 
-#include <Arduino.h>
+#include "hal.hpp"
 
-void setup() {
-	comm::init();
-	led::init();
-	DEBUG("Firmware ready");
-}
+#define COMM_DEFAULT_SPEED 9600
+#define COMM_DEFAULT_CFG   hal::serial::Config::CONFIG_8N1
+#define COMM_DEFAULT_MODE  comm::Mode::MESSAGE
 
-void loop() {
-	comm::check();
-	led::check();
-}
+namespace comm {
+
+enum class Mode {
+	MESSAGE,
+	PACKET
+};
+
+void init(unsigned long speed = COMM_DEFAULT_SPEED, const hal::serial::Config& cfg = COMM_DEFAULT_CFG, Mode mode = COMM_DEFAULT_MODE);
+
+unsigned long getSpeed();
+
+const hal::serial::Config& getCfg();
+
+const comm::Mode& getMode();
+
+char* readMsg();
+
+void* readPacket(uint8_t* lenOut);
+
+void write(const char* msg);
+
+void write(const void* packet, uint8_t szPacket);
+
+void check();
+
+} // namespace comm

@@ -35,10 +35,35 @@ SOFTWARE.
 #include <unistd.h>
 #include <regex.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <sys/time.h>
 
 #define __PORT_BASE "/dev"
 #define __PORT_NAME_PATTERN "(ttyS|ttyUSB|ttyACM|ttyAMA|rfcomm|ttyO)[0-9]{1,3}"
-#define __LINUX_PORT(nativePort) ((int)(intptr_t)nativePort)
+
+typedef struct __linux_port __linux_port_t;
+
+struct __linux_port {
+	int      fd;
+	uint32_t readTimeout;
+};
+
+static uint64_t __millis() {
+	static uint64_t mStart = 0;
+
+	if (mStart == 0) {
+		struct timeval tvStart;
+		gettimeofday(&tvStart, NULL);
+		mStart = (tvStart.tv_sec * 1000000 + tvStart.tv_usec) / 1000;
+	}
+
+	struct timeval tvNow;
+	gettimeofday(&tvNow, NULL);
+	uint64_t now = (tvNow.tv_sec * 1000000 + tvNow.tv_usec) / 1000;
+
+	return (uint32_t)now - mStart;
+}
 
 static bool __regex_match(const regex_t* regex, const char* str) {
 	return regexec(regex, str, 0, NULL, 0) == 0;
@@ -85,7 +110,7 @@ static serial_list_t* __serial_native_list_unix_ports(serial_list_t* list, const
 	regex_t regex;
 	DIR* dir = NULL;
 	char portName[512];
-	serial_native_port_t nativePort;
+	void* nativePort;
 
 	if (regcomp(&regex, namePattern, REG_EXTENDED)) {
 		errno = SERIAL_ERROR_INVALID_PARAM;
@@ -322,8 +347,8 @@ static bool __set_stop_bits(struct termios* termios, serial_stop_bits_e stopBits
 	return true;
 }
 
-static bool __set_cfg(int linuxNativePort, const struct termios* cfg) {
-	if (tcsetattr(linuxNativePort, TCSANOW, cfg) < 0) {
+static bool __set_cfg(int fd, const struct termios* cfg) {
+	if (tcsetattr(fd, TCSANOW, cfg) < 0) {
 		errno = SERIAL_ERROR_IO;
 		return false;
 	}
@@ -335,33 +360,43 @@ serial_list_t* _serial_native_list_ports(serial_list_t* list) {
 	return __serial_native_list_unix_ports(list, __PORT_NAME_PATTERN);
 }
 
-serial_native_port_t _serial_native_open(const char* portName) {
+void* _serial_native_open(const char* portName) {
+	__linux_port_t* port = malloc(sizeof(__linux_port_t));
+
+	if (!port) goto error;
+	port->readTimeout = 0;
+
 	int previousError;
 
-	int linuxNativePort = open(portName, O_RDWR | O_NOCTTY | O_NDELAY);
+	port->fd = open(portName, O_RDWR | O_NOCTTY | O_NDELAY);
 
-	if (linuxNativePort < 0)
+	if (port->fd < 0)
 		goto error;
 
 	struct termios settings;
-	if (tcgetattr(linuxNativePort, &settings) < 0)
+	if (tcgetattr(port->fd, &settings) < 0)
 		goto error;
 
 	int flags;
-	if ((flags = fcntl(linuxNativePort, F_GETFL, 0)) < 0)
+	if ((flags = fcntl(port->fd, F_GETFL, 0)) < 0)
 		goto error;
 
 	flags &= ~O_NDELAY; // Restores blocking mode after open
-	if (fcntl(linuxNativePort, F_SETFL, flags) < 0)
+	if (fcntl(port->fd, F_SETFL, flags) < 0)
 		goto error;
 
-	return (serial_native_port_t)(size_t) linuxNativePort;
+	return port;
 
 error:
 	previousError = errno;
 
-	if (linuxNativePort > 0)
-		close(linuxNativePort);
+	if (port) {
+		if (port->fd > 0) {
+			close(port->fd);
+		}
+
+		free(port);
+	}
 
 	errno = previousError; // Discards any error caused by close()
 
@@ -390,10 +425,12 @@ error:
 	return NULL;
 }
 
-bool _serial_native_config(serial_native_port_t nativePort, const serial_config_t* config) {
+bool _serial_native_config(void* nativePort, const serial_config_t* config) {
+	__linux_port_t* linuxPort = (__linux_port_t*)nativePort;
+
 	struct termios termios;
 
-	if (!__get_cfg(__LINUX_PORT(nativePort), &termios))
+	if (!__get_cfg(linuxPort->fd, &termios))
 		return false;
 
 	bool result = __set_baud(&termios, config->baud)
@@ -404,25 +441,36 @@ bool _serial_native_config(serial_native_port_t nativePort, const serial_config_
 	if (!result)
 		return false;
 
-	return __set_cfg(__LINUX_PORT(nativePort), &termios);
+	return __set_cfg(linuxPort->fd, &termios);
 }
 
-bool _serial_native_set_read_timeout(serial_native_port_t nativePort, uint32_t millis) {
+bool _serial_native_set_read_timeout(void* nativePort, uint32_t millis) {
+	__linux_port_t* linuxPort = (__linux_port_t*)nativePort;
+
 	struct termios termios;
 
-	if (!__get_cfg(__LINUX_PORT(nativePort), &termios))
+	if (!__get_cfg(linuxPort->fd, &termios))
 		return false;
 
-	termios.c_cc[VTIME] = millis / 100;
+	// On linux maximum timeout is 255 deciseconds
+	uint32_t decis = millis / 100;
+	if (decis > UINT8_MAX) {
+		decis = UINT8_MAX;
+	};
+
+	termios.c_cc[VTIME] = decis;
 	termios.c_cc[VMIN]  = 0;
 
-	if (!__set_cfg(__LINUX_PORT(nativePort), &termios))
+	if (!__set_cfg(linuxPort->fd, &termios))
 		return false;
 
+	linuxPort->readTimeout = millis;
 	return true;
 }
 
-bool _serial_native_purge(serial_native_port_t nativePort, serial_purge_type_e type) {
+bool _serial_native_purge(void* nativePort, serial_purge_type_e type) {
+	__linux_port_t* linuxPort = (__linux_port_t*)nativePort;
+
 	int unixPurgeType;
 	switch(type) {
 		case SERIAL_PURGE_TYPE_RX:
@@ -442,7 +490,7 @@ bool _serial_native_purge(serial_native_port_t nativePort, serial_purge_type_e t
 			return false;
 	}
 
-	if (tcflush(__LINUX_PORT(nativePort), unixPurgeType) < 0) {
+	if (tcflush(linuxPort->fd, unixPurgeType) < 0) {
 		errno = SERIAL_ERROR_IO;
 		return false;
 	}
@@ -450,19 +498,24 @@ bool _serial_native_purge(serial_native_port_t nativePort, serial_purge_type_e t
 	return true;
 }
 
-bool _serial_native_close(serial_native_port_t nativePort) {
-	if (close(__LINUX_PORT(nativePort)) < 0) {
+bool _serial_native_close(void* nativePort) {
+	__linux_port_t* linuxPort = (__linux_port_t*)nativePort;
+
+	if (close(linuxPort->fd) < 0) {
 		errno = SERIAL_ERROR_IO;
 		return false;
 	}
 
+	free(nativePort);
 	return true;
 }
 
-int32_t _serial_native_available(const serial_native_port_t nativePort) {
+int32_t _serial_native_available(const void* nativePort) {
+	__linux_port_t* linuxPort = (__linux_port_t*)nativePort;
+
 	int32_t bytes;
 
-	if (ioctl(__LINUX_PORT(nativePort), FIONREAD, &bytes) < 0) {
+	if (ioctl(linuxPort->fd, FIONREAD, &bytes) < 0) {
 		errno = SERIAL_ERROR_IO;
 		return -1;
 	}
@@ -470,9 +523,26 @@ int32_t _serial_native_available(const serial_native_port_t nativePort) {
 	return bytes;
 }
 
-int32_t _serial_native_read(serial_native_port_t nativePort, void* out, uint32_t len) {
+int32_t _serial_native_read(void* nativePort, void* out, uint32_t len) {
+	__linux_port_t* linuxPort = (__linux_port_t*)nativePort;
+
 	uint32_t maxRef = (SIZE_MAX > INT32_MAX) ? INT32_MAX : SIZE_MAX;
-	int32_t mRead = read(__LINUX_PORT(nativePort), out, len > maxRef ? maxRef : len);
+	int32_t mRead;
+	uint64_t timestamp;
+
+	// On linux, maximum read timeout is 25.5 seconds (see termios.cc_cc).
+	// Workaround to accept longer timeouts.
+	timestamp = __millis();
+	while (true) {
+		mRead = read(linuxPort->fd, out, len > maxRef ? maxRef : len);
+		if (mRead == 0) {
+			if ((__millis() - timestamp) >= linuxPort->readTimeout) {
+				break;
+			}
+		} else {
+			break;
+		}
+	}
 
 	if (mRead < 0) {
 		errno = SERIAL_ERROR_IO;
@@ -482,9 +552,11 @@ int32_t _serial_native_read(serial_native_port_t nativePort, void* out, uint32_t
 	return mRead;
 }
 
-int32_t _serial_native_write(serial_native_port_t nativePort, const void* in, uint32_t len) {
+int32_t _serial_native_write(void* nativePort, const void* in, uint32_t len) {
+	__linux_port_t* linuxPort = (__linux_port_t*)nativePort;
+
 	uint32_t maxRef = (SIZE_MAX > INT32_MAX) ? INT32_MAX : SIZE_MAX;
-	ssize_t written = write(__LINUX_PORT(nativePort), in, len > maxRef ? maxRef : len);
+	ssize_t written = write(linuxPort->fd, in, len > maxRef ? maxRef : len);
 
 	if (written < 0)
 		goto error;
@@ -496,8 +568,10 @@ error:
 	return -1;
 }
 
-bool _serial_native_flush(serial_native_port_t nativePort) {
-	if (tcdrain(__LINUX_PORT(nativePort)) < 0) {
+bool _serial_native_flush(void* nativePort) {
+	__linux_port_t* linuxPort = (__linux_port_t*)nativePort;
+
+	if (tcdrain(linuxPort->fd) < 0) {
 		errno = SERIAL_ERROR_IO;
 		return false;
 	}

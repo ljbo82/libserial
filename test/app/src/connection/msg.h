@@ -21,62 +21,9 @@ SOFTWARE.
 */
 #pragma once
 
-#include <stdint.h>
+#include "mode.h"
+#include "../connection.h"
 
-#define COMM_DEFAULT_SPEED 9600
-#define COMM_DEFAULT_CFG   comm::Config::CONFIG_8N1
-#define COMM_DEFAULT_MODE  comm::Mode::MESSAGE
+bool connection_msg_ping(connection_t* connection, const char* msg);
 
-namespace comm {
-
-enum class Config {
-	CONFIG_5N1,
-	CONFIG_6N1,
-	CONFIG_7N1,
-	CONFIG_8N1,
-	CONFIG_5N2,
-	CONFIG_6N2,
-	CONFIG_7N2,
-	CONFIG_8N2,
-	CONFIG_5E1,
-	CONFIG_6E1,
-	CONFIG_7E1,
-	CONFIG_8E1,
-	CONFIG_5E2,
-	CONFIG_6E2,
-	CONFIG_7E2,
-	CONFIG_8E2,
-	CONFIG_5O1,
-	CONFIG_6O1,
-	CONFIG_7O1,
-	CONFIG_8O1,
-	CONFIG_5O2,
-	CONFIG_6O2,
-	CONFIG_7O2,
-	CONFIG_8O2
-};
-
-enum class Mode {
-	MESSAGE,
-	PACKET
-};
-
-void init(unsigned long speed = COMM_DEFAULT_SPEED, const Config& cfg = COMM_DEFAULT_CFG, Mode mode = COMM_DEFAULT_MODE);
-
-unsigned long getSpeed();
-
-const comm::Config& getCfg();
-
-const comm::Mode& getMode();
-
-char* readMsg();
-
-void* readPacket(uint8_t* lenOut);
-
-void write(const char* msg);
-
-void write(const void* packet, uint8_t szPacket);
-
-void check();
-
-} // namespace comm
+bool connection_msg_protocol(connection_t* connection, uint32_t baud, connection_config_e cfg, connection_mode_e mode);

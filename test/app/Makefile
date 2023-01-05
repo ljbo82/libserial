@@ -18,14 +18,40 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-PROJ_NAME := serial-demo
+export CPP_PROJECT_BUILDER ?= $(abspath ../../make)
+
+PROJ_NAME := serial-app
 PROJ_TYPE := app
 
-export LIB_TYPE := static
+O ?= output
 
-LIB_PROJECTS += ../..
-LIBS += serial0
+# libserial ====================================================================
+LIBSERIAL_DIR  := ../..
+PRE_BUILD_DEPS += $(O)/libs/libserial.marker
+LDFLAGS        += -lserial0
 
-CPP_PROJECT_BUILDER ?= ../../make
+--libserial:
+	$(O_VERBOSE)$(MAKE) -C $(LIBSERIAL_DIR) O=$(call FN_REL_DIR,$(LIBSERIAL_DIR),$(O)/libs) BUILD_SUBDIR=libserial DIST_MARKER=libserial.marker LIB_TYPE=static
+
+$(O)/libs/libserial.marker: --libserial ;
+# ==============================================================================
+
+# libcomm ======================================================================
+LIBCOMM_DIR    := ../libcomm
+PRE_BUILD_DEPS += $(O)/libs/libcomm.marker
+LDFLAGS        += -lcomm0
+
+--libcomm:
+	$(O_VERBOSE)$(MAKE) -C $(LIBCOMM_DIR) O=$(call FN_REL_DIR,$(LIBCOMM_DIR),$(O)/libs) BUILD_SUBDIR=libcomm DIST_MARKER=libcomm.marker LIB_TYPE=static
+
+$(O)/libs/libcomm.marker: --libcomm ;
+# ==============================================================================
+
+INCLUDE_DIRS += $(O)/libs/dist/include
+LDFLAGS      += -L$(O)/libs/dist/lib
+
+ifeq ($(DEBUG),1)
+    CFLAGS += -DDEBUG_ENABLED=1
+endif
 
 include $(CPP_PROJECT_BUILDER)/builder.mk

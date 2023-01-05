@@ -156,8 +156,8 @@ error:
 	return NULL;
 }
 
-serial_native_port_t _serial_native_open(const char* portName) {
-	serial_native_port_t nativePort = INVALID_HANDLE_VALUE;
+void* _serial_native_open(const char* portName) {
+	void* nativePort = INVALID_HANDLE_VALUE;
 
 	int previousError;
 
@@ -167,7 +167,7 @@ serial_native_port_t _serial_native_open(const char* portName) {
 		goto error;
 	}
 
-	nativePort = (serial_native_port_t) CreateFile(
+	nativePort = (void*) CreateFile(
 		portFullName,
 		GENERIC_READ | GENERIC_WRITE, // Read / Write
 		0,                            // No sharing
@@ -210,7 +210,7 @@ error:
 	return NULL;
 }
 
-bool _serial_native_config(serial_native_port_t nativePort, const serial_config_t* config) {
+bool _serial_native_config(void* nativePort, const serial_config_t* config) {
 	DCB dcb;
 
 	if (!__get_cfg(__WIN_PORT(nativePort), &dcb))
@@ -227,11 +227,10 @@ bool _serial_native_config(serial_native_port_t nativePort, const serial_config_
 	return __set_cfg(__WIN_PORT(nativePort), &dcb);
 }
 
-bool _serial_native_set_read_timeout(serial_native_port_t nativePort, uint32_t millis) {
+bool _serial_native_set_read_timeout(void* nativePort, uint32_t millis) {
 	COMMTIMEOUTS commTimeouts = { 0 };
 
 	commTimeouts.ReadIntervalTimeout = millis;
-	commTimeouts.ReadTotalTimeoutConstant = millis;
 
 	if (!SetCommTimeouts(__WIN_PORT(nativePort), &commTimeouts)) {
 		errno = SERIAL_ERROR_IO;
@@ -241,7 +240,7 @@ bool _serial_native_set_read_timeout(serial_native_port_t nativePort, uint32_t m
 	return true;
 }
 
-bool _serial_native_purge(serial_native_port_t nativePort, serial_purge_type_e type) {
+bool _serial_native_purge(void* nativePort, serial_purge_type_e type) {
 	DWORD winPurgeType;
 	switch(type) {
 	case SERIAL_PURGE_TYPE_RX:
@@ -269,7 +268,7 @@ bool _serial_native_purge(serial_native_port_t nativePort, serial_purge_type_e t
 	return true;
 }
 
-bool _serial_native_close(serial_native_port_t nativePort) {
+bool _serial_native_close(void* nativePort) {
 	if (!CloseHandle(__WIN_PORT(nativePort))) {
 		errno = SERIAL_ERROR_IO;
 		return false;
@@ -278,7 +277,7 @@ bool _serial_native_close(serial_native_port_t nativePort) {
 	return true;
 }
 
-int32_t _serial_native_available(const serial_native_port_t nativePort) {
+int32_t _serial_native_available(const void* nativePort) {
 	COMSTAT comstat;
 	comstat.cbInQue = 0;
 
@@ -294,7 +293,7 @@ int32_t _serial_native_available(const serial_native_port_t nativePort) {
 	}
 }
 
-int32_t _serial_native_read(serial_native_port_t nativePort, void* out, uint32_t len) {
+int32_t _serial_native_read(void* nativePort, void* out, uint32_t len) {
 	DWORD mRead = 0;
 
 	if (!ReadFile(__WIN_PORT(nativePort), out, len, &mRead, NULL)) {
@@ -305,7 +304,7 @@ int32_t _serial_native_read(serial_native_port_t nativePort, void* out, uint32_t
 	return (int32_t)mRead;
 }
 
-int32_t _serial_native_write(serial_native_port_t nativePort, const void* in, uint32_t len) {
+int32_t _serial_native_write(void* nativePort, const void* in, uint32_t len) {
 	DWORD written;
 
 	if (!WriteFile(__WIN_PORT(nativePort), in, len, &written, NULL)) {
@@ -316,7 +315,7 @@ int32_t _serial_native_write(serial_native_port_t nativePort, const void* in, ui
 	return (int32_t)written;
 }
 
-bool _serial_native_flush(serial_native_port_t nativePort) {
+bool _serial_native_flush(void* nativePort) {
 	if (!FlushFileBuffers(__WIN_PORT(nativePort))) {
 		errno = SERIAL_ERROR_IO;
 		return false;

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022 Leandro José Britto de Oliveira
+Copyright (c) 2023 Leandro José Britto de Oliveira
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,27 +19,46 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+#include "debug.hpp"
+#include "comm.hpp"
+#include "led.hpp"
+#include "hal/serial.hpp"
 
-#pragma once
+#include <signal.h>
+#include <unistd.h>
 
-#include "connection/config.h"
+volatile bool __stop = false;
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stddef.h>
+static void __onSignal(int sgn) {
+	switch(sgn) {
+	case SIGTERM:
+	case SIGABRT:
+	case SIGSEGV:
+	case SIGINT:
+		__stop = true;
+		break;
+	}
+}
 
-typedef struct __connection connection_t;
+int main() {
+	signal(SIGTERM, __onSignal);
+	signal(SIGABRT, __onSignal);
+	signal(SIGSEGV, __onSignal);
+	signal(SIGINT, __onSignal);
 
-connection_t* connection_open(const char* portName);
+	if (!hal::serial::open()) return 1;
 
-bool connection_config(connection_t* connection, uint32_t baud, connection_config_e config);
+	led::init();
+	comm::init();
 
-bool connection_close(connection_t* connection);
+	DEBUG("Application ready");
 
-char* connection_read_msg(connection_t* connection);
+	__stop = false;
+	while(!__stop) {
+		led::check();
+		comm::check();
+		usleep(5000);
+	}
 
-void* connection_read_packet(connection_t* connection, uint8_t* lenOut);
-
-bool connection_write_msg(connection_t* connection, const char* msg);
-
-bool connection_write_packet(connection_t* connection, const void* packet, uint8_t szPacket);
+	return hal::serial::close() ? 0 : 1;
+}

@@ -40,13 +40,13 @@ SOFTWARE.
 				"name": "test-app",
 				"type": "cppdbg",
 				"request": "launch",
-				"program": "${workspaceFolder}/output/vscode/test/app/dist/bin/serial-demo0",
+				"program": "${workspaceFolder}/output/vscode/test/app/dist/bin/serial-app0",
 			},
 			"windows": {
 				"name": "test-app",
 				"type": "cppdbg",
 				"request": "launch",
-				"program": "${workspaceFolder}\\output\\vscode\\test\\app\\dist\\bin\\serial-demo0.exe"
+				"program": "${workspaceFolder}\\output\\vscode\\test\\app\\dist\\bin\\serial-app0.exe"
 			},
 			"setupCommands": [
 				{
@@ -55,6 +55,30 @@ SOFTWARE.
 				}
 			],
 			"preLaunchTask": "test-app"
+		},
+		{
+			"name": "test-firmware-linux",
+			"program": "",
+			"cwd": ".",
+			"type": "cppdbg",
+			"request": "launch",
+			"args": [],
+			"stopAtEntry": true,
+			"externalConsole": false,
+			"MIMode": "gdb",
+			"linux": {
+				"name": "test-firmware-linux",
+				"type": "cppdbg",
+				"request": "launch",
+				"program": "${workspaceFolder}/output/vscode/test/firmware/linux-x64/dist/bin/serial-test-firmware0",
+			},
+			"setupCommands": [
+				{
+					"text": "-enable-pretty-printing",
+					"ignoreFailures": true
+				}
+			],
+			"preLaunchTask": "test-firmware-linux"
 		}
 	]
 }

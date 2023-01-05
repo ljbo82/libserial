@@ -23,6 +23,7 @@ SOFTWARE.
 #include "connection.h"
 
 #include <serial.h>
+#include <comm.h>
 #include <stdio.h>
 #include <errno.h>
 #include <inttypes.h>
@@ -33,80 +34,59 @@ SOFTWARE.
 #define __READ_TIMEOUT   3000
 #define __DEFAULT_BAUD   9600
 #define __DEFAULT_CONFIG CONNECTION_CONFIG_8N1
-#define __CMD_DELIMITER  '\n'
-#define __ACK            "ACK"
-#define __NAK            "NAK"
 
 struct __connection {
-	serial_t* port;
-	char msgBuffer[__MSG_MAX_LEN + 2]; // __MSG_MAX_LEN + __CMD_DELIMITER + '\0'
+	serial_t*             port;
+	comm_stream_t*        serialStream;
+	comm_line_stream_t*   lineStream;
+	comm_packet_stream_t* packetStream;
 };
 
-static const char* __find(const char* msg, char c) {
-	const char* cursor = msg;
-	while(*cursor != '\0') {
-		if (*cursor == c) {
-			return cursor;
-		}
-		cursor++;
-	}
-
-	return NULL;
+static uint32_t COMM_CALL __available_read(const comm_stream_t* stream) {
+	connection_t* connection = comm_obj_data(stream);
+	return serial_available(connection->port);
 }
 
-connection_t* connection_open(const char* portName) {
-	connection_t* connection = malloc(sizeof(connection_t));
-
-	if (!connection) {
-		errno = SERIAL_ERROR_MEM;
-		goto error;
-	}
-
-	connection->port = serial_open(portName);
-	if (!connection->port)
-		goto error;
-
-	if (!connection_config(connection, __DEFAULT_BAUD, __DEFAULT_CONFIG))
-		goto error;
-
-	if (!serial_set_read_timeout(connection->port, __READ_TIMEOUT))
-		goto error;
-
-	if (!connection_purge(connection))
-		goto error;
-
-	return connection;
-
-error:
-	if (connection) {
-		if (connection->port) {
-			int previousError = errno;
-			serial_close(connection->port);
-			errno = previousError; // Discards errors during serial_close()
-		}
-
-		free(connection);
-	}
-	return NULL;
+static int32_t COMM_CALL __read(comm_stream_t* stream, void* out, uint32_t len) {
+	connection_t* connection = comm_obj_data(stream);
+	return serial_read(connection->port, out, len);
 }
 
-bool connection_purge(connection_t* connection) {
-	int previousError = errno;
-	errno = SERIAL_ERROR_OK;
+static uint32_t COMM_CALL __available_write(const comm_stream_t* stream) {
+	return UINT32_MAX;
+}
 
-	// Discards all data until timeout (silence)
-	int32_t mRead;
-	while ((mRead = serial_read(connection->port, NULL, 1)) > 0);
+static int32_t COMM_CALL __write(comm_stream_t* stream, const void* in, uint32_t len) {
+	connection_t* connection = comm_obj_data(stream);
 
-	if (mRead < 0 && errno == SERIAL_ERROR_TIMEOUT) {
-		errno = previousError;
-		return serial_purge(connection->port, SERIAL_PURGE_TYPE_RX_TX);
-	} else {
-		return false;
+	if (serial_write(connection->port, in, len))
+		return len;
+
+	return -1;
+}
+
+static bool COMM_CALL __flush(comm_stream_t* stream) {
+	connection_t* connection = comm_obj_data(stream);
+	return serial_flush(connection->port);
+}
+
+static int __convert_comm_error(int commError) {
+	switch (commError) {
+	case COMM_ERROR_NOMEM:
+		return SERIAL_ERROR_MEM;
+
+	case COMM_ERROR_IO:
+		return SERIAL_ERROR_IO;
+
+	case COMM_ERROR_INVPARAM:
+		return SERIAL_ERROR_INVALID_PARAM;
+
+	default:
+		return SERIAL_ERROR_UNKNOWN;
 	}
 }
 
-bool connection_config(connection_t* connection, uint32_t baud, connection_config_e config) {
+static bool __serial_config(serial_t* port, uint32_t baud, connection_config_e config) {
 	serial_config_t serialConfig;
 
 	serialConfig.baud     = baud;
@@ -143,80 +123,121 @@ bool connection_config(connection_t* connection, uint32_t baud, connection_confi
 		goto error;
 	}
 
-	return serial_config(connection->port, &serialConfig);
+	return serial_config(port, &serialConfig);
 
 error:
 	errno = SERIAL_ERROR_INVALID_PARAM;
 	return false;
 }
 
-const char* connection_to_str(const connection_t* connection, char* buf, size_t szBuf) {
-	serial_config_t config;
-	serial_get_config(connection->port, &config);
-
-	char chDataBits;
-	switch (config.dataBits) {
-	case SERIAL_DATA_BITS_5:
-	case SERIAL_DATA_BITS_6:
-	case SERIAL_DATA_BITS_7:
-	case SERIAL_DATA_BITS_8:
-		chDataBits = '5' + (config.dataBits - SERIAL_DATA_BITS_5);
-		break;
-
-	default:
-		goto error;
+static bool __purge(connection_t* connection) {
+	if (!connection->port) {
+		errno = SERIAL_ERROR_IO;
+		return false;
 	}
 
-	char chParity;
-	switch (config.parity) {
-	case SERIAL_PARITY_NONE:
-		chParity = 'N';
-		break;
+	int previousError = errno;
+	errno = SERIAL_ERROR_OK;
 
-	case SERIAL_PARITY_EVEN:
-		chParity = 'E';
-		break;
+	// Discards all data until timeout (silence)
+	int32_t mRead;
+	while ((mRead = serial_read(connection->port, NULL, 1)) > 0);
 
-	case SERIAL_PARITY_ODD:
-		chParity = 'O';
-		break;
-
-	default:
-		goto error;
+	if (mRead < 0 && errno == SERIAL_ERROR_TIMEOUT) {
+		errno = previousError;
+		return true;
+	} else {
+		return false;
 	}
+}
 
-	const char* chStopBits;
-	switch (config.stopBits) {
-	case SERIAL_STOP_BITS_1:
-		chStopBits = "1";
-		break;
+connection_t* connection_open(const char* portName) {
+	static const comm_stream_controller_t mSerialStreamController = {
+		.available_read          = __available_read,
+		.read                    = __read,
+		.available_write         = __available_write,
+		.write                   = __write,
+		.flush                   = __flush
+	};
 
-	case SERIAL_STOP_BITS_1_5:
-		chStopBits = "1.5";
-		break;
-
-	case SERIAL_STOP_BITS_2:
-		chStopBits = "2";
-		break;
-
-	default:
-		goto error;
-	}
-
-	if (snprintf(buf, szBuf - 1, "%s (%" PRIu32 " %c%c%s)", serial_get_name(connection->port), config.baud, chDataBits, chParity, chStopBits) >= (szBuf - 1)) {
+	connection_t* connection = malloc(sizeof(connection_t));
+	if (!connection) {
 		errno = SERIAL_ERROR_MEM;
-		return NULL;
+		goto error;
+	} else {
+		memset(connection, 0, sizeof(connection_t));
 	}
 
-	return buf;
+	connection->port = serial_open(portName);
+	if (!connection->port) goto error;
+	if (!__serial_config(connection->port, __DEFAULT_BAUD, __DEFAULT_CONFIG)) goto error;
+	if (!serial_set_read_timeout(connection->port, __READ_TIMEOUT)) goto error;
+
+	connection->serialStream = comm_stream_new(&mSerialStreamController, connection);
+	if (!connection->serialStream) {
+		errno = __convert_comm_error(errno);
+		goto error;
+	}
+
+	connection->lineStream = comm_line_stream_new(connection->serialStream, __MSG_MAX_LEN, true, NULL, connection);
+	if (!connection->lineStream) {
+		errno = __convert_comm_error(errno);
+		goto error;
+	}
+
+	connection->packetStream = comm_packet_stream_new(connection->serialStream, true, NULL, connection);
+	if (!connection->lineStream) {
+		errno = __convert_comm_error(errno);
+		goto error;
+	}
+
+	if (!__purge(connection))
+		goto error;
+
+	#if DEBUG_ENABLED
+		if (!serial_set_read_timeout(connection->port, UINT32_MAX)) goto error;
+	#endif
+
+	return connection;
 
 error:
-	errno = SERIAL_ERROR_INVALID_PARAM;
+	if (connection) {
+		int previousError = errno;
+
+		if (connection->packetStream) {
+			comm_obj_del(connection->packetStream);
+		}
+
+		if (connection->lineStream) {
+			comm_obj_del(connection->lineStream);
+		}
+
+		if (connection->serialStream) {
+			comm_obj_del(connection->serialStream);
+		}
+
+		if (connection->port) {
+			serial_close(connection->port);
+		}
+
+		free(connection);
+
+		errno = previousError;
+	}
+
 	return NULL;
+}
+
+bool connection_config(connection_t* connection, uint32_t baud, connection_config_e config) {
+	return __serial_config(connection->port, baud, config);
 }
 
 bool connection_close(connection_t* connection) {
 	if (serial_close(connection->port)) {
+		comm_obj_del(connection->serialStream);
+		comm_obj_del(connection->lineStream);
+		comm_obj_del(connection->packetStream);
+
 		free(connection);
 		return true;
 	}
@@ -224,73 +245,18 @@ bool connection_close(connection_t* connection) {
 	return false;
 }
 
-bool connection_send_msg(connection_t* connection, const char* msg) {
-	size_t msgLen = strlen(msg);
-	if (msgLen > __MSG_MAX_LEN) {
-		errno = SERIAL_ERROR_INVALID_PARAM;
-		return false;
-	}
-
-	if (__find(msg, __CMD_DELIMITER)) {
-		// Malformed msg (it cannot contain __CMD_DELIMITER char in the payload)
-		errno = SERIAL_ERROR_INVALID_PARAM;
-		return false;
-	}
-
-	if (!serial_write(connection->port, msg, msgLen))
-		return false;
-
-	char delimiter = __CMD_DELIMITER;
-	if (!serial_write(connection->port, &delimiter, 1))
-		return false;
-
-	if (!serial_flush(connection->port))
-		return false;
-
-	// Check ACK
-	const char* ack = connection_read_msg(connection);
-
-	if (strcmp(ack, __ACK) == 0) {
-		return true;
-	} else if (strcmp(ack, __NAK) == 0) {
-		return false;
-	} else {
-		// Invalid acknowledge
-		connection_purge(connection);
-		errno = SERIAL_ERROR_IO;
-		return false;
-	}
+char* connection_read_msg(connection_t* connection) {
+	return comm_line_stream_read(connection->lineStream);
 }
 
-const char* connection_read_msg(connection_t* connection) {
-	uint32_t totalRead    = 0;
-	char*    buf          = connection->msgBuffer;
-	bool     debugMessage = false;
+void* connection_read_packet(connection_t* connection, uint8_t* lenOut) {
+	return comm_packet_stream_read(connection->packetStream, lenOut);
+}
 
-	while (totalRead < sizeof(connection->msgBuffer) - 1) {
-		if (serial_read(connection->port, buf, 1) < 0)
-			return NULL;
+bool connection_write_msg(connection_t* connection, const char* msg) {
+	return comm_line_stream_write(connection->lineStream, msg);
+}
 
-		if (!debugMessage && totalRead == 0 && *buf == '\033')
-			debugMessage = true;
-
-		if (*buf == __CMD_DELIMITER) {
-			*buf = '\0';
-
-			if (debugMessage) {
-				// Discards debug message
-				debugMessage = false;
-				continue;
-			} else {
-				return connection->msgBuffer;
-			}
-		}
-
-		totalRead += debugMessage ? 0 : 1;
-		buf += debugMessage ? 0 : 1;
-	}
-
-	//  __CMD_DELIMITER was not found (message is too big)
-	connection_purge(connection);
-	return NULL;
+bool connection_write_packet(connection_t* connection, const void* packet, uint8_t szPacket) {
+	return comm_packet_stream_write(connection->packetStream, packet, szPacket);
 }

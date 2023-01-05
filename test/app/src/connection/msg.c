@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022 Leandro José Britto de Oliveira
+Copyright (c) 2023 Leandro José Britto de Oliveira
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,19 +20,23 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "cmd.h"
+#include "msg.h"
 
 #include <serial.h>
-
 #include <errno.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 
-#define __MSG_MAX_LEN 128
+#define __MSG_MAX_LEN       128
+#define __MSG_PING         "PING"
+#define __MSG_PROT         "PROT"
+#define __MSG_ACK          "ACK"
+#define __MSG_NAK          "NAK"
+#define __DEBUG_MSG_PREFIX "\033[90m"
 
-static bool __str_starts_with(const char* str, const char* prefix) {
-	while (*prefix != '\0') {
+static bool __startsWith(const char* str, const char* prefix) {
+	while(*prefix != '\0') {
 		if (*str != *prefix) {
 			return false;
 		}
@@ -43,29 +47,35 @@ static bool __str_starts_with(const char* str, const char* prefix) {
 	return true;
 }
 
-bool connection_cmd_ping(connection_t* connection, const char* msg) {
+static const char* __read_message(connection_t* connection) {
+	while (true) {
+		const char* msg = connection_read_msg(connection);
+		if (!msg || !__startsWith(msg, __DEBUG_MSG_PREFIX)) {
+			return msg;
+		}
+	}
+}
+
+bool connection_msg_ping(connection_t* connection, const char* msg) {
 	char mMsg[__MSG_MAX_LEN + 1]; // __MSG_MAX_LEN + '\0'
-	if (snprintf(mMsg, sizeof(mMsg) - 1, "PING;%s", msg) >= (sizeof(mMsg) - 1)) {
+	const char* rsp;
+
+	if (snprintf(mMsg, sizeof(mMsg) - 1, "%s;%s", __MSG_PING, msg) >= (sizeof(mMsg) - 1)) {
 		// msg was truncated
 		errno = SERIAL_ERROR_MEM;
 		return false;
 	}
 
-	if (!connection_send_msg(connection, mMsg))
-		return false;
+	if (!connection_write_msg(connection, mMsg)) return false;
 
-	const char* rsp = connection_read_msg(connection);
-
-	if (!rsp)
-		return false;
-
-	if (!__str_starts_with(rsp, "PING;")) {
+	rsp = __read_message(connection);
+	if (!rsp || strcmp(rsp, __MSG_ACK) != 0) {
 		errno = SERIAL_ERROR_IO;
 		return false;
 	}
 
-	rsp += 5;
-	if (strcmp(msg, rsp) != 0) {
+	rsp = __read_message(connection);
+	if (!rsp || strcmp(rsp, msg) != 0) {
 		errno = SERIAL_ERROR_IO;
 		return false;
 	}
@@ -73,14 +83,23 @@ bool connection_cmd_ping(connection_t* connection, const char* msg) {
 	return true;
 }
 
-bool connection_cmd_protocol(connection_t* connection, uint32_t baud, connection_config_e cfg) {
+bool connection_msg_protocol(connection_t* connection, uint32_t baud, connection_config_e cfg, connection_mode_e mode) {
 	char msg[__MSG_MAX_LEN + 1]; // __MSG_MAX_LEN + '\0'
-	if (snprintf(msg, sizeof(msg) - 1, "PROT;%" PRIu32 ";%s", baud, connection_config_to_str(cfg)) >= (sizeof(msg) - 1)) {
+	const char* rsp;
+
+	if (snprintf(msg, sizeof(msg) - 1, "%s;%" PRIu32 ";%s;%d", __MSG_PROT, baud, connection_config_to_str(cfg), mode) >= (sizeof(msg) - 1)) {
 		// msg was truncated
 		errno = SERIAL_ERROR_MEM;
 		return false;
 	}
 
-	return connection_send_msg(connection, msg)
-	       && connection_config(connection, baud, cfg);
+	if (!connection_write_msg(connection, msg)) return false;
+
+	rsp = __read_message(connection);
+	if (!rsp || strcmp(rsp, __MSG_ACK) != 0) {
+		errno = SERIAL_ERROR_IO;
+		return false;
+	}
+
+	return connection_config(connection, baud, cfg);
 }

@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Leandro José Britto de Oliveira
+# Copyright (c) 2023 Leandro José Britto de Oliveira
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -18,4 +18,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-include ../../hosts/windows/host.mk
+# libserial ====================================================================
+LIBSERIAL_DIR  := ../..
+PRE_BUILD_DEPS += $(O)/libs/libserial.marker
+LDFLAGS        += -lserial0
+
+--libserial:
+	$(O_VERBOSE)$(MAKE) -C $(LIBSERIAL_DIR) O=$(call FN_REL_DIR,$(LIBSERIAL_DIR),$(O)/libs) BUILD_SUBDIR=libserial DIST_MARKER=libserial.marker LIB_TYPE=static
+
+$(O)/libs/libserial.marker: --libserial ;
+# ==============================================================================

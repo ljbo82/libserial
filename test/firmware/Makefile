@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Leandro José Britto de Oliveira
+# Copyright (c) 2023 Leandro José Britto de Oliveira
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -18,4 +18,31 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-include ../../hosts/linux/host.mk
+export ARDUINO_BUILDER     ?= $(abspath arduino-core-avr/make/arduino-builder)
+export CPP_PROJECT_BUILDER ?= $(abspath ../../make)
+
+PROJ_NAME := serial-test-firmware
+PROJ_TYPE := app
+
+O ?= output
+
+# libcomm ======================================================================
+LIBCOMM_DIR    := ../libcomm
+PRE_BUILD_DEPS += $(O)/libs/libcomm.marker
+LDFLAGS        += -lcomm0
+
+--libcomm:
+	$(O_VERBOSE)$(MAKE) -C $(LIBCOMM_DIR) EXTRA_HOSTS_DIRS=$(call FN_REL_DIR,$(LIBCOMM_DIR),$(ARDUINO_BUILDER)/hosts) O=$(call FN_REL_DIR,$(LIBCOMM_DIR),$(O)/libs) BUILD_SUBDIR=libcomm DIST_MARKER=libcomm.marker LIB_TYPE=static
+
+$(O)/libs/libcomm.marker: --libcomm ;
+# ==============================================================================
+
+INCLUDE_DIRS += $(O)/libs/dist/include
+LDFLAGS      += -L$(O)/libs/dist/lib
+
+ifeq ($(DEBUG),1)
+    CXXFLAGS += -DDEBUG_ENABLED=1
+endif
+
+include $(ARDUINO_BUILDER)/layers.mk
+include $(CPP_PROJECT_BUILDER)/builder.mk
