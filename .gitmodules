@@ -1,8 +1,8 @@
 [submodule "test/firmware/arduino-core-avr"]
-	path = test/firmware/arduino-core-avr
+	path = test/libs/arduino-core-avr
 	url = https://github.com/ljbo82/arduino-core-avr.git
 [submodule "test/libcomm"]
-	path = test/libcomm
+	path = test/libs/libcomm
 	url = https://github.com/ljbo82/libcomm.git
 [submodule "make"]
 	path = make
