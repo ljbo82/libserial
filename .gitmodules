@@ -4,6 +4,3 @@
 [submodule "test/libs/libcomm"]
 	path = test/libs/libcomm
 	url = https://github.com/ljbo82/libcomm.git
-[submodule "make"]
-	path = make
-	url = https://github.com/ljbo82/cpp-project-builder-core.git

@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 export ARDUINO_BUILDER     ?= $(abspath ../libs/arduino-core-avr/make/arduino-builder)
-export CPP_PROJECT_BUILDER ?= $(abspath ../../make)
+export CPP_PROJECT_BUILDER ?= $(abspath ../libs/libcomm/make)
 
 PROJ_NAME := serial-test-firmware
 PROJ_TYPE := app

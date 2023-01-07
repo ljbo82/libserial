@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-export CPP_PROJECT_BUILDER ?= $(abspath ../../make)
+export CPP_PROJECT_BUILDER ?= $(abspath ../libs/libcomm/make)
 
 PROJ_NAME := serial-app
 PROJ_TYPE := app
