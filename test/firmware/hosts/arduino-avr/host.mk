@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 # arduino-core =================================================================
-ARDUINO_CORE_AVR_DIR := arduino-core-avr
+ARDUINO_CORE_AVR_DIR := ../libs/arduino-core-avr
 PRE_BUILD_DEPS       += $(O)/libs/arduino-core-avr.marker
 LDFLAGS              += -larduino-core1
 

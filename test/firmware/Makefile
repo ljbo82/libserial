@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-export ARDUINO_BUILDER     ?= $(abspath arduino-core-avr/make/arduino-builder)
+export ARDUINO_BUILDER     ?= $(abspath ../libs/arduino-core-avr/make/arduino-builder)
 export CPP_PROJECT_BUILDER ?= $(abspath ../../make)
 
 PROJ_NAME := serial-test-firmware
@@ -27,7 +27,7 @@ PROJ_TYPE := app
 O ?= output
 
 # libcomm ======================================================================
-LIBCOMM_DIR    := ../libcomm
+LIBCOMM_DIR    := ../libs/libcomm
 PRE_BUILD_DEPS += $(O)/libs/libcomm.marker
 LDFLAGS        += -lcomm0
 

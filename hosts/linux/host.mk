@@ -27,7 +27,7 @@ ifneq ($(HOST),linux-x64)
 endif
 
 ifeq ($(LIB_TYPE),shared)
-    CFLAGS += -DCOMM_SHARED_LIB
+    CFLAGS += -DSERIAL_BUILD_SHARED_LIB
 endif
 
 ifeq ($(PROJ_TYPE),lib)

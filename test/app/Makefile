@@ -37,7 +37,7 @@ $(O)/libs/libserial.marker: --libserial ;
 # ==============================================================================
 
 # libcomm ======================================================================
-LIBCOMM_DIR    := ../libcomm
+LIBCOMM_DIR    := ../libs/libcomm
 PRE_BUILD_DEPS += $(O)/libs/libcomm.marker
 LDFLAGS        += -lcomm0
 
