@@ -75,8 +75,4 @@ namespace led {
 
 uint32_t millis();
 
-#if DEBUG_ENABLED
-	void debug(const char* msg);
-#endif
-
 } // namespace hal

@@ -27,7 +27,6 @@ SOFTWARE.
 #include <errno.h>
 #include <time.h>
 #include <sys/time.h>
-#include <stdio.h>
 
 static bool __toSerialCfg(const hal::serial::Config& cfg, serial_config_t* out) {
 	#define mOut(assign) if (out) out->assign
@@ -183,13 +182,6 @@ static bool __toSerialCfg(const hal::serial::Config& cfg, serial_config_t* out) 
 
 	return true;
 }
-
-#if DEBUG_ENABLED
-void hal::debug(const char* msg) {
-	printf("%s\n", msg);
-	fflush(stdout);
-}
-#endif // #if DEBUG_ENABLED
 
 uint32_t hal::millis() {
 	static uint64_t mStart = 0;

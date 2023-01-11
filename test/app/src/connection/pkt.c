@@ -28,6 +28,7 @@ SOFTWARE.
 #define __PACKET_NAK  1
 #define __PACKET_PING 2
 #define __PACKET_PROT 3
+#define __PACKET_DBG  4
 
 static uint8_t __buf[255];
 
@@ -61,6 +62,17 @@ static uint8_t __from_cfg(connection_config_e cfg) {
 	}
 }
 
+static void* __read_packet(connection_t* connection, uint8_t* lenOut) {
+	while (true) {
+		uint8_t len;
+		uint8_t* packet = connection_read_packet(connection, &len);
+		if (!packet || packet[0] != __PACKET_DBG) {
+			if (lenOut) *lenOut = len;
+			return packet;
+		}
+	}
+}
+
 bool connection_pkt_ping(connection_t* connection, const void* in, uint8_t len) {
 	if (len >= sizeof(__buf) - 1) {
 		errno = SERIAL_ERROR_INVALID_PARAM;
@@ -77,13 +89,13 @@ bool connection_pkt_ping(connection_t* connection, const void* in, uint8_t len) 
 	uint8_t rspLen;
 	uint8_t* rsp;
 
-	rsp = connection_read_packet(connection, &rspLen);
+	rsp = __read_packet(connection, &rspLen);
 	if (!rsp || rspLen != 1 || *rsp != __PACKET_ACK) {
 		errno = SERIAL_ERROR_IO;
 		return false;
 	}
 
-	rsp = connection_read_packet(connection, &rspLen);
+	rsp = __read_packet(connection, &rspLen);
 	if (!rsp || rspLen != len || memcmp(in, rsp, len) != 0) {
 		errno = SERIAL_ERROR_IO;
 		return false;
@@ -112,7 +124,7 @@ bool connection_pkt_protocol(connection_t* connection, uint32_t baud, connection
 	uint8_t rspLen;
 	uint8_t* rsp;
 
-	rsp = connection_read_packet(connection, &rspLen);
+	rsp = __read_packet(connection, &rspLen);
 	if (!rsp || rspLen != 1 || *rsp != __PACKET_ACK) {
 		errno = SERIAL_ERROR_IO;
 		return false;

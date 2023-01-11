@@ -19,12 +19,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
+#include "debug.hpp"
+#include "comm.hpp"
+#include <stdio.h>
 
 #if DEBUG_ENABLED
-	#define DEBUG(msg, ...) ::debug("[DEBUG][%s:%d] " msg, __FILE__, __LINE__, ##__VA_ARGS__)
+#warning DEBUG INFO IS BEING ADDED TO FIRMWARE
+void debug(const char* msg, ...) {
+	char mBuf[255];
 
-	void debug(const char* msg, ...);
-#else
-	#define DEBUG(msg, ...)
-#endif
+	va_list args;
+	va_start(args, msg);
+	vsnprintf(mBuf, sizeof(mBuf) - 1, msg, args);
+	va_end(args);
+
+	comm::debug(mBuf);
+}
+#endif // DEBUG_ENABLED

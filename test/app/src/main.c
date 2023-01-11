@@ -58,19 +58,39 @@ int main(int argc, char** argv) {
 		portName = serial_list_item(list, option);
 	}
 
+		console_printf("Opening port %s... ", portName);
+		console_flush();
+
 	connection_t* connection = connection_open(portName);
 	if (!connection) {
-		console_printf("[ERROR] Error opening serial port %s: %s\n", portName, serial_error_to_str(errno));
+		console_color_printf(CONSOLE_ANSI_COLOR_BRIGHT_RED, "[ERROR] Error opening serial port %s: %s\n", portName, serial_error_to_str(errno));
 		return 1;
+	} else {
+		console_printf("DONE!\n");
 	}
 
 	serial_list_del(list);
 	__ASSERT(connection_config(connection, 9600, CONNECTION_CONFIG_8N1));
+
+	console_printf("[MSG] PING test... "); console_flush();
 	__ASSERT(connection_msg_ping(connection, "hello"));
+	console_printf("DONE!\n");
+
+	console_printf("[MSG] PROT test... "); console_flush();
 	__ASSERT(connection_msg_protocol(connection, 9600, CONNECTION_CONFIG_8N1, CONNECTION_MODE_PACKET));
+	console_printf("DONE!\n");
+
+	console_printf("[PKT] PING test... "); console_flush();
 	__ASSERT(connection_pkt_ping(connection, "world!", strlen("world!")));
+	console_printf("DONE!\n");
+
+	console_printf("[PKT] PROT test (protocol switched)... "); console_flush();
 	__ASSERT(connection_pkt_protocol(connection, 2400, CONNECTION_CONFIG_7E2, CONNECTION_MODE_MESSAGE));
+	console_printf("DONE!\n");
+
+	console_printf("Protocol change test... "); console_flush();
 	__ASSERT(connection_msg_ping(connection, "HELLO"));
+	console_printf("DONE!\n");
 
 	__ASSERT(connection_close(connection));
 

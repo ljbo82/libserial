@@ -55,6 +55,8 @@ typedef struct __serial_list serial_list_t;
 
 typedef struct __serial serial_t;
 
+typedef struct serial_config serial_config_t;
+
 enum serial_data_bits {
 	SERIAL_DATA_BITS_5 = 5,
 	SERIAL_DATA_BITS_6,
@@ -70,7 +72,7 @@ enum serial_parity {
 
 enum serial_stop_bits {
 	SERIAL_STOP_BITS_1 = 1,
-	SERIAL_STOP_BITS_2 = 2,
+	SERIAL_STOP_BITS_2,
 	SERIAL_STOP_BITS_1_5
 };
 
@@ -101,8 +103,6 @@ typedef enum serial_purge_type serial_purge_type_e;
 
 typedef enum serial_error serial_error_e;
 
-typedef struct serial_config serial_config_t;
-
 struct serial_config {
 	uint32_t           baud;
 	serial_data_bits_e dataBits;
@@ -132,7 +132,7 @@ SERIAL_PUBLIC const char* SERIAL_CALL serial_get_name(const serial_t* port);
 
 SERIAL_PUBLIC bool SERIAL_CALL serial_config(serial_t* port, const serial_config_t* config);
 
-SERIAL_PUBLIC void serial_get_config(const serial_t* port, serial_config_t* out);
+SERIAL_PUBLIC void SERIAL_CALL serial_get_config(const serial_t* port, serial_config_t* out);
 
 SERIAL_PUBLIC bool SERIAL_CALL serial_set_read_timeout(serial_t* port, uint32_t millis);
 

@@ -20,7 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "hal.hpp"
-#include "comm.hpp"
 
 #include <Arduino.h>
 
@@ -53,13 +52,6 @@ static uint8_t __toArduinoCfg(const hal::serial::Config& cfg) {
 	default: return SERIAL_8E1;
 	}
 }
-
-#if DEBUG_ENABLED
-#warning "DEBUG INFO IS BEING ADDED TO FIRMWARE"
-void hal::debug(const char* msg) {
-	comm::write(msg);
-}
-#endif // #if DEBUG_ENABLED
 
 uint32_t hal::millis() {
 	return ::millis();

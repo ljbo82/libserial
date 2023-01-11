@@ -137,3 +137,7 @@ void console_color_printf(console_ansi_color_e fg, const char* fmt, ...) {
 	vprintf(fmt, args);
 	__set_color(CONSOLE_ANSI_COLOR_RESET);
 }
+
+void console_flush() {
+	fflush(stdout);
+}

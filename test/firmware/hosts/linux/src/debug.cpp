@@ -21,6 +21,20 @@ SOFTWARE.
 */
 #include "debug.hpp"
 
+#include <stdio.h>
+#include <stdarg.h>
+
 #if DEBUG_ENABLED
-	char debugBuffer[256];
-#endif
+#warning DEBUG INFO IS BEING ADDED TO FIRMWARE
+void debug(const char* msg, ...) {
+	char mBuf[255];
+
+	va_list args;
+	va_start(args, msg);
+	vsnprintf(mBuf, sizeof(mBuf) - 1, msg, args);
+	va_end(args);
+
+	printf("%s\n", mBuf);
+	fflush(stdout);
+}
+#endif // DEBUG_ENABLED

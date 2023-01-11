@@ -86,15 +86,48 @@ static int __convert_comm_error(int commError) {
 	}
 }
 
+static bool __purge(serial_t* port, uint32_t timeout) {
+	if (!port) {
+		errno = SERIAL_ERROR_IO;
+		return false;
+	}
+
+	uint32_t previousTimeout = serial_get_read_timeout(port);
+
+	if (!serial_set_read_timeout(port, timeout))
+		return false;
+
+	int previousError = errno;
+	errno = SERIAL_ERROR_OK;
+
+	// Discards all data until timeout (silence)
+	int32_t mRead;
+	while ((mRead = serial_read(port, NULL, 1)) > 0);
+
+	bool result;
+	if (mRead < 0 && errno == SERIAL_ERROR_TIMEOUT) {
+		errno = previousError;
+		result = true;
+	} else {
+		result = false;
+	}
+
+	result = serial_set_read_timeout(port, previousTimeout) && result;
+
+	return result;
+}
+
 static bool __serial_config(serial_t* port, uint32_t baud, connection_config_e config) {
-	serial_config_t serialConfig;
+	serial_config_t oldConf;
+	serial_get_config(port, &oldConf);
 
-	serialConfig.baud     = baud;
-	serialConfig.dataBits = CONNECTION_CONFIG_DATA_BITS(config);
-	serialConfig.parity   = CONNECTION_CONFIG_PARITY(config);
-	serialConfig.stopBits = CONNECTION_CONFIG_STOP_BITS(config);
+	serial_config_t newConf;
+	newConf.baud     = baud;
+	newConf.dataBits = CONNECTION_CONFIG_DATA_BITS(config);
+	newConf.parity   = CONNECTION_CONFIG_PARITY(config);
+	newConf.stopBits = CONNECTION_CONFIG_STOP_BITS(config);
 
-	switch(serialConfig.dataBits) {
+	switch(newConf.dataBits) {
 	case SERIAL_DATA_BITS_5:
 	case SERIAL_DATA_BITS_6:
 	case SERIAL_DATA_BITS_7:
@@ -104,7 +137,8 @@ static bool __serial_config(serial_t* port, uint32_t baud, connection_config_e c
 	default:
 		goto error;
 	}
-	switch(serialConfig.parity) {
+
+	switch(newConf.parity) {
 	case SERIAL_PARITY_NONE:
 	case SERIAL_PARITY_EVEN:
 	case SERIAL_PARITY_ODD:
@@ -113,7 +147,8 @@ static bool __serial_config(serial_t* port, uint32_t baud, connection_config_e c
 	default:
 		goto error;
 	}
-	switch(serialConfig.stopBits) {
+
+	switch(newConf.stopBits) {
 	case SERIAL_STOP_BITS_1:
 	case SERIAL_STOP_BITS_2:
 	case SERIAL_STOP_BITS_1_5:
@@ -123,33 +158,17 @@ static bool __serial_config(serial_t* port, uint32_t baud, connection_config_e c
 		goto error;
 	}
 
-	return serial_config(port, &serialConfig);
+	if (memcmp(&newConf, &oldConf, sizeof(serial_config_t))) {
+		return serial_config(port, &newConf) && __purge(port, __READ_TIMEOUT);
+	}
+
+	return true;
 
 error:
 	errno = SERIAL_ERROR_INVALID_PARAM;
 	return false;
 }
 
-static bool __purge(connection_t* connection) {
-	if (!connection->port) {
-		errno = SERIAL_ERROR_IO;
-		return false;
-	}
-
-	int previousError = errno;
-	errno = SERIAL_ERROR_OK;
-
-	// Discards all data until timeout (silence)
-	int32_t mRead;
-	while ((mRead = serial_read(connection->port, NULL, 1)) > 0);
-
-	if (mRead < 0 && errno == SERIAL_ERROR_TIMEOUT) {
-		errno = previousError;
-		return true;
-	} else {
-		return false;
-	}
-}
 
 connection_t* connection_open(const char* portName) {
 	static const comm_stream_controller_t mSerialStreamController = {
@@ -169,9 +188,17 @@ connection_t* connection_open(const char* portName) {
 	}
 
 	connection->port = serial_open(portName);
-	if (!connection->port) goto error;
-	if (!__serial_config(connection->port, __DEFAULT_BAUD, __DEFAULT_CONFIG)) goto error;
-	if (!serial_set_read_timeout(connection->port, __READ_TIMEOUT)) goto error;
+	if (!connection->port) {
+		goto error;
+	}
+
+	if (!__serial_config(connection->port, __DEFAULT_BAUD, __DEFAULT_CONFIG)) {
+		goto error;
+	}
+
+	if (!serial_set_read_timeout(connection->port, __READ_TIMEOUT)) {
+		goto error;
+	}
 
 	connection->serialStream = comm_stream_new(&mSerialStreamController, connection);
 	if (!connection->serialStream) {
@@ -191,7 +218,7 @@ connection_t* connection_open(const char* portName) {
 		goto error;
 	}
 
-	if (!__purge(connection))
+	if (!__purge(connection->port, __READ_TIMEOUT))
 		goto error;
 
 	#if DEBUG_ENABLED

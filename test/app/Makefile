@@ -51,7 +51,7 @@ INCLUDE_DIRS += $(O)/libs/dist/include
 LDFLAGS      += -L$(O)/libs/dist/lib
 
 ifeq ($(DEBUG),1)
-    CFLAGS += -DDEBUG_ENABLED=1
+    CFLAGS += -std=gnu99 -DDEBUG_ENABLED=1
 endif
 
 include $(CPP_PROJECT_BUILDER)/builder.mk

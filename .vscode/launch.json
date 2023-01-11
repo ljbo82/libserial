@@ -40,13 +40,13 @@ SOFTWARE.
 				"name": "test-app",
 				"type": "cppdbg",
 				"request": "launch",
-				"program": "${workspaceFolder}/output/vscode/test/app/dist/bin/serial-app0",
+				"program": "${workspaceFolder}/output/vscode/test/app/dist/bin/serial-app",
 			},
 			"windows": {
 				"name": "test-app",
 				"type": "cppdbg",
 				"request": "launch",
-				"program": "${workspaceFolder}\\output\\vscode\\test\\app\\dist\\bin\\serial-app0.exe"
+				"program": "${workspaceFolder}\\output\\vscode\\test\\app\\dist\\bin\\serial-app.exe"
 			},
 			"setupCommands": [
 				{
@@ -70,7 +70,7 @@ SOFTWARE.
 				"name": "test-firmware-linux",
 				"type": "cppdbg",
 				"request": "launch",
-				"program": "${workspaceFolder}/output/vscode/test/firmware/linux-x64/dist/bin/serial-test-firmware0",
+				"program": "${workspaceFolder}/output/vscode/test/firmware/linux-x64/dist/bin/serial-test-firmware",
 			},
 			"setupCommands": [
 				{

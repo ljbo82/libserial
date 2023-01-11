@@ -55,3 +55,5 @@ int console_get_num_option(const char* prompt, int numOptions);
 void console_printf(const char* fmt, ...);
 
 void console_color_printf(console_ansi_color_e fg, const char* fmt, ...);
+
+void console_flush();

@@ -52,4 +52,8 @@ void write(const void* packet, uint8_t szPacket);
 
 void check();
 
+#if DEBUG_ENABLED
+void debug(const char* msg);
+#endif // DEBUG_ENABLED
+
 } // namespace comm

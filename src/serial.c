@@ -307,7 +307,7 @@ SERIAL_PUBLIC bool SERIAL_CALL serial_config(serial_t* port, const serial_config
 	return true;
 }
 
-SERIAL_PUBLIC void serial_get_config(const serial_t* port, serial_config_t* out) {
+SERIAL_PUBLIC void SERIAL_CALL serial_get_config(const serial_t* port, serial_config_t* out) {
 	*out = port->config;
 }
 

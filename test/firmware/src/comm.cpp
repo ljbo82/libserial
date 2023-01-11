@@ -31,12 +31,15 @@ SOFTWARE.
 #include <stdlib.h>
 #include <inttypes.h>
 
-#define __MSG_PING  "PING"
-#define __MSG_PROT  "PROT"
-#define __MSG_BLINK "BLINK"
+#define __MSG_DBG_PREFIX "\033[90m"
+#define __MSG_DBG_SUFFIX "\033[0m"
+#define __MSG_PING       "PING"
+#define __MSG_PROT       "PROT"
+#define __MSG_BLINK      "BLINK"
 
 #define __PACKET_PING 2
 #define __PACKET_PROT 3
+#define __PACKET_DBG  4
 
 #define __READ_TIMEOUT_MILLIS 1000
 #define __MSG_MAX_LEN         128
@@ -78,6 +81,7 @@ static void __purge() {
 }
 
 #if DEBUG_ENABLED
+	#warning DEBUG INFO IS BEING ADDED TO THE FIRMWARE
 	static const char* __toString(const hal::serial::Config& config) {
 		switch (config) {
 		case hal::serial::Config::CONFIG_5N1: return "5N1";
@@ -117,9 +121,9 @@ static void __purge() {
 	}
 
 	#define __TO_STR(w) __toString(w)
-#else
+#else // DEBUG_ENABLED
 	#define __TO_STR(w)
-#endif
+#endif // DEBUG_ENABLED
 
 void comm::init(unsigned long speed, const hal::serial::Config& cfg, Mode mode) {
 	static comm_stream_controller_t mController;
@@ -192,6 +196,7 @@ const comm::Mode& comm::getMode() {
 
 char* comm::readMsg() {
 	#if DEBUG_ENABLED
+		#warning DEBUG INFO IS BEING ADDED TO THE FIRMWARE
 		char* line = comm_line_stream_read(__lineStream);
 		if (line) {
 			DEBUG("[comm::readLine] Line read: %s", line);
@@ -204,6 +209,7 @@ char* comm::readMsg() {
 
 void* comm::readPacket(uint8_t* lenOut) {
 	#if DEBUG_ENABLED
+		#warning DEBUG INFO IS BEING ADDED TO THE FIRMWARE
 		uint8_t* packet = comm_packet_stream_read(__packetStream, lenOut);
 		if (packet) {
 			DEBUG("[comm::readPacket] packet read (size: %d)", *lenOut);
@@ -239,3 +245,48 @@ void comm::check() {
 		break;
 	}
 }
+
+#if DEBUG_ENABLED
+#warning DEBUG INFO IS BEING ADDED TO THE FIRMWARE
+#include <string.h>
+#include <stdio.h>
+void comm::debug(const char* msg) {
+	switch(__mode) {
+	case Mode::MESSAGE: {
+		char debugBuffer[255];
+
+		char* cursor = debugBuffer;
+		size_t szPrefix = strlen(__MSG_DBG_PREFIX);
+
+		strcpy(cursor, __MSG_DBG_PREFIX);
+		cursor += szPrefix;
+		cursor += snprintf(cursor, sizeof(debugBuffer) - (szPrefix + strlen(__MSG_DBG_SUFFIX) + 1), "%s", msg);
+		strcpy(cursor, __MSG_DBG_SUFFIX);
+
+		write(debugBuffer);
+		break;
+	}
+
+	case Mode::PACKET: {
+		char pkt[UINT8_MAX];
+		uint8_t len;
+
+		pkt[0] = __PACKET_DBG;
+		size_t strLen = strlen(msg);
+		if (strLen > (UINT8_MAX - 2)) { // -2 due to packet id and null-terminator
+			len = UINT8_MAX;
+			memcpy(pkt + 1, msg, (UINT8_MAX - 2));
+			pkt[UINT8_MAX - 2] = '\0';
+		} else {
+			len = 2 + strLen;
+			strcpy(pkt + 1, msg);
+		}
+		comm::write(pkt, len);
+		break;
+	}
+
+	default:
+		break;
+	}
+}
+#endif
