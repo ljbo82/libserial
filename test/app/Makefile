@@ -54,4 +54,8 @@ ifeq ($(DEBUG),1)
     CFLAGS += -std=gnu99 -DDEBUG_ENABLED=1
 endif
 
+.PHONY: run
+run: all
+	@$(O)/dist/bin/serial-app
+
 include $(CPP_PROJECT_BUILDER)/builder.mk
