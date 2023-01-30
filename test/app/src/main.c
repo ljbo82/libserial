@@ -92,6 +92,10 @@ int main(int argc, char** argv) {
 	__ASSERT(connection_msg_ping(connection, "HELLO"));
 	console_printf("DONE!\n");
 
+	console_printf("Restoring protocol... "); console_flush();
+	__ASSERT(connection_msg_protocol(connection, 9600, CONNECTION_CONFIG_8N1, CONNECTION_MODE_MESSAGE));
+	console_printf("DONE!\n");
+
 	__ASSERT(connection_close(connection));
 
 	console_color_printf(CONSOLE_ANSI_COLOR_BRIGHT_GREEN, "Success!\n");

@@ -102,7 +102,7 @@ static bool __purge(serial_t* port, uint32_t timeout) {
 
 	// Discards all data until timeout (silence)
 	int32_t mRead;
-	while ((mRead = serial_read(port, NULL, 1)) > 0);
+	while ((mRead = serial_read(port, NULL, 1)) >= 0);
 
 	bool result;
 	if (mRead < 0 && errno == SERIAL_ERROR_TIMEOUT) {
